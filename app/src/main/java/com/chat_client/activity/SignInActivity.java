@@ -1,22 +1,39 @@
 package com.chat_client.activity;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chat_client.R;
+import com.chat_client.auth.AuthorisationController;
+import com.chat_client.auth.ConnectionConfig;
+import com.chat_client.entity.User;
+import com.chat_client.json.JsonObjectFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import org.zeromq.ZMQ;
+
+import java.io.IOException;
 
 public class SignInActivity extends Activity {
 
     private EditText loginText;
     private EditText passwordText;
-    private TextView board;
-    private StringBuilder builder;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +42,12 @@ public class SignInActivity extends Activity {
 
         loginText = (EditText) findViewById(R.id.loginEditText);
         passwordText = (EditText) findViewById(R.id.passwordEditText);
-        board = (TextView) findViewById(R.id.boardChatTextView);
 
         signIn();
         signUp();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void signUp() {
@@ -47,13 +66,31 @@ public class SignInActivity extends Activity {
 
         assert signInButton != null;
         signInButton.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void onClick(View v) {
                 if (isInvalidData()) {
                     Toast.makeText(SignInActivity.this, "Invalid input data",
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    startActivity(new Intent(SignInActivity.this, ChatActivity.class));
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try (ZMQ.Context context = ZMQ.context(1)) {
+                                ConnectionConfig config = new ConnectionConfig(context);
+                                String login = loginText.getText().toString().trim();
+                                String password = passwordText.getText().toString().trim();
+                                AuthorisationController authorizationController = new AuthorisationController(config.getDatabaseRequester());
+                                if (authorizationController.authorization(login, password)) {
+                                    Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
+                                    intent.putExtra("login", login);
+                                    startActivity(intent);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
                 }
             }
 

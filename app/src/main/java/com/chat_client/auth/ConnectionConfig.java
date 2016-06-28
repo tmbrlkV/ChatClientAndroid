@@ -23,13 +23,13 @@ public class ConnectionConfig implements Serializable {
 
     private void receiveInit(Context context) {
         receiver = context.socket(SUB);
-        receiver.connect("tcp://10.66.162.215:10000");
+        receiver.connect("tcp://192.168.0.107:10000");
         receiver.subscribe("".getBytes());
     }
 
     private void sendInit(Context context) {
         sender = context.socket(PUSH);
-        sender.connect("tcp://10.66.162.215:10001");
+        sender.connect("tcp://192.168.0.107:10001");
     }
 
     private void pollerInit() {
@@ -39,7 +39,7 @@ public class ConnectionConfig implements Serializable {
 
     private void databaseRequesterInit(Context context) {
         databaseRequester = context.socket(REQ);
-        databaseRequester.connect("tcp://10.66.162.215:11000");
+        databaseRequester.connect("tcp://192.168.0.107:5555");
     }
 
     public Socket getDatabaseRequester() {
