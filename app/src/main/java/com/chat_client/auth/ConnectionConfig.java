@@ -1,8 +1,15 @@
 package com.chat_client.auth;
 
+
 import java.io.Serializable;
 
-import static org.zeromq.ZMQ.*;
+import static com.chat_client.util.ConnectionProperties.*;
+import static org.zeromq.ZMQ.Context;
+import static org.zeromq.ZMQ.PUSH;
+import static org.zeromq.ZMQ.Poller;
+import static org.zeromq.ZMQ.REQ;
+import static org.zeromq.ZMQ.SUB;
+import static org.zeromq.ZMQ.Socket;
 
 public class ConnectionConfig implements Serializable {
     private Socket receiver;
@@ -23,13 +30,13 @@ public class ConnectionConfig implements Serializable {
 
     private void receiveInit(Context context) {
         receiver = context.socket(SUB);
-        receiver.connect("tcp://10.66.162.215:10000");
+        receiver.connect(CHAT_SERVICE_RECEIVER_URL);
         receiver.subscribe("".getBytes());
     }
 
     private void sendInit(Context context) {
         sender = context.socket(PUSH);
-        sender.connect("tcp://10.66.162.215:10001");
+        sender.connect(CHAT_SERVICE_SENDER_URL);
     }
 
     private void pollerInit() {
@@ -39,7 +46,7 @@ public class ConnectionConfig implements Serializable {
 
     private void databaseRequesterInit(Context context) {
         databaseRequester = context.socket(REQ);
-        databaseRequester.connect("tcp://10.66.162.215:11000");
+        databaseRequester.connect(DATABASE_SERVICE_REQUESTER_URL);
     }
 
     public Socket getDatabaseRequester() {

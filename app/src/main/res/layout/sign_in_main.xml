@@ -38,16 +38,20 @@
         android:id="@+id/signInMainLayoutButton"
         android:layout_below="@+id/passwordEditText"
         android:layout_alignRight="@+id/passwordEditText"
-        android:layout_alignEnd="@+id/passwordEditText" />
+        android:layout_alignEnd="@+id/passwordEditText"
+        android:layout_alignLeft="@+id/passwordEditText"
+        android:layout_alignStart="@+id/passwordEditText" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/sign_up"
         android:id="@+id/signUpMainLayoutButton"
-        android:layout_below="@+id/passwordEditText"
-        android:layout_alignLeft="@+id/passwordEditText"
-        android:layout_alignStart="@+id/passwordEditText" />
+        android:layout_below="@+id/signInMainLayoutButton"
+        android:layout_alignLeft="@+id/signInMainLayoutButton"
+        android:layout_alignStart="@+id/signInMainLayoutButton"
+        android:layout_alignRight="@+id/signInMainLayoutButton"
+        android:layout_alignEnd="@+id/signInMainLayoutButton" />
 
     <TextView
         android:layout_width="wrap_content"

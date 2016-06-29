@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.chat_client.R;
 import com.chat_client.auth.ConnectionConfig;
+import com.chat_client.util.StringCleaner;
 
 import org.zeromq.ZMQ;
 
@@ -19,6 +21,7 @@ public class ChatActivity extends Activity {
     private EditText messageField;
     private StringBuffer sendMessageBuffer = new StringBuffer();
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
+    private ScrollView boardScrollView;
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
@@ -28,13 +31,15 @@ public class ChatActivity extends Activity {
 
         board = (TextView) findViewById(R.id.boardChatTextView);
         messageField = (EditText) findViewById(R.id.editTextMessage);
+        boardScrollView = (ScrollView) findViewById(R.id.boardScrollView);
         Button sendButton = (Button) findViewById(R.id.sendMessageButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageBuffer.append(messageField.getText());
+                sendMessageBuffer.append(StringCleaner.messageTrim(messageField.getText().toString()));
                 messageField.setText("");
             }
+
         });
 
         new Thread(new Runnable() {
@@ -106,7 +111,40 @@ public class ChatActivity extends Activity {
             @Override
             public void run() {
                 board.setText(receiveMessageBuffer);
+                boardScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+//                scrollTo(0, boardScrollView.getMaxScrollAmount());
+
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

@@ -40,6 +40,8 @@
         android:text="@string/sign_up"
         android:id="@+id/signUpPageButton"
         android:layout_below="@+id/passwordSignUpRepeat"
+        android:layout_alignLeft="@+id/passwordSignUpRepeat"
+        android:layout_alignStart="@+id/passwordSignUpRepeat"
         android:layout_alignRight="@+id/passwordSignUpRepeat"
         android:layout_alignEnd="@+id/passwordSignUpRepeat" />
 
@@ -48,9 +50,11 @@
         android:layout_height="wrap_content"
         android:text="@string/back"
         android:id="@+id/backToSignInButton"
-        android:layout_below="@+id/passwordSignUpRepeat"
-        android:layout_alignLeft="@+id/passwordSignUpRepeat"
-        android:layout_alignStart="@+id/passwordSignUpRepeat" />
+        android:layout_below="@+id/signUpPageButton"
+        android:layout_alignRight="@+id/signUpPageButton"
+        android:layout_alignEnd="@+id/signUpPageButton"
+        android:layout_alignLeft="@+id/signUpPageButton"
+        android:layout_alignStart="@+id/signUpPageButton" />
 
     <TextView
         android:layout_width="wrap_content"
