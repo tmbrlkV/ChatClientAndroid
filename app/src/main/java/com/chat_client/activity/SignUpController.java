@@ -1,20 +1,20 @@
-package com.chat_client.auth;
+package com.chat_client.activity;
 
 import com.chat_client.entity.User;
 import com.chat_client.json.JsonObjectFactory;
 
 import org.zeromq.ZMQ;
 
-public class AuthorisationController {
-    private final ZMQ.Socket databaseRequester;
+public class SignUpController {
+    private ZMQ.Socket databaseRequester;
 
-    public AuthorisationController(ZMQ.Socket databaseRequester) {
+    public SignUpController(ZMQ.Socket databaseRequester) {
         this.databaseRequester = databaseRequester;
     }
 
-    public boolean authorization(String login, String password) throws Exception {
+    public boolean register(String login, String password) throws Exception {
         User user = new User(login, password);
-        String jsonString = JsonObjectFactory.getJsonString("getUserByLoginPassword", user);
+        String jsonString = JsonObjectFactory.getJsonString("newUser", user);
         databaseRequester.send(jsonString);
 
         String response = databaseRequester.recvStr();

@@ -15,7 +15,6 @@ import com.chat_client.auth.ConnectionConfig;
 import org.zeromq.ZMQ;
 
 public class ChatActivity extends Activity {
-
     private TextView board;
     private EditText messageField;
     private StringBuffer sendMessageBuffer = new StringBuffer();

@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/sign_up"
-        android:paddingTop="30px"
+        android:paddingTop="30sp"
         android:id="@+id/signUpTextView"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />

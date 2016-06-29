@@ -3,7 +3,6 @@ package com.chat_client.activity;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -14,26 +13,12 @@ import android.widget.Toast;
 import com.chat_client.R;
 import com.chat_client.auth.AuthorisationController;
 import com.chat_client.auth.ConnectionConfig;
-import com.chat_client.entity.User;
-import com.chat_client.json.JsonObjectFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.zeromq.ZMQ;
 
-import java.io.IOException;
-
 public class SignInActivity extends Activity {
-
     private EditText loginText;
     private EditText passwordText;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +30,6 @@ public class SignInActivity extends Activity {
 
         signIn();
         signUp();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void signUp() {
@@ -85,6 +67,14 @@ public class SignInActivity extends Activity {
                                     Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
                                     intent.putExtra("login", login);
                                     startActivity(intent);
+                                } else {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(SignInActivity.this, "Authentication failed",
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
