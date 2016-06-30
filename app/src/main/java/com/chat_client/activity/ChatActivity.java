@@ -23,7 +23,7 @@ public class ChatActivity extends Activity {
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
     private ScrollView boardScrollView;
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +39,13 @@ public class ChatActivity extends Activity {
                 sendMessageBuffer.append(StringCleaner.messageTrim(messageField.getText().toString()));
                 messageField.setText("");
             }
+        });
 
+        boardScrollView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                boardScrollView.fullScroll(View.FOCUS_DOWN);
+            }
         });
 
         new Thread(new Runnable() {
@@ -111,7 +117,6 @@ public class ChatActivity extends Activity {
             @Override
             public void run() {
                 board.setText(receiveMessageBuffer);
-                boardScrollView.fullScroll(ScrollView.FOCUS_DOWN);
             }
         });
     }

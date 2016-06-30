@@ -38,7 +38,7 @@
         android:maxLength="140"
         android:maxLines="3"
         android:paddingRight="10sp"
-        android:textSize="38sp" />
+        android:textSize="25sp" />
 
     <Button
         android:id="@+id/sendMessageButton"
