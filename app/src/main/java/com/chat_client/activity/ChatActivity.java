@@ -112,8 +112,6 @@ public class ChatActivity extends Activity {
             public void run() {
                 board.setText(receiveMessageBuffer);
                 boardScrollView.fullScroll(ScrollView.FOCUS_DOWN);
-//                scrollTo(0, boardScrollView.getMaxScrollAmount());
-
             }
         });
     }
@@ -129,18 +127,8 @@ public class ChatActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 
     @Override

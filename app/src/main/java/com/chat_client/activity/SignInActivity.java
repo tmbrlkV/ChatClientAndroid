@@ -3,8 +3,10 @@ package com.chat_client.activity;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,14 +19,17 @@ import com.chat_client.auth.ConnectionConfig;
 import org.zeromq.ZMQ;
 
 public class SignInActivity extends Activity {
+    private static final String LOGIN_TEXT = "loginTextSignIn";
+    private static final String PASSWORD_TEXT = "passwordTextSignIn";
     private EditText loginText;
     private EditText passwordText;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sign_in_main);
-
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         loginText = (EditText) findViewById(R.id.loginEditText);
         passwordText = (EditText) findViewById(R.id.passwordEditText);
 
@@ -38,7 +43,9 @@ public class SignInActivity extends Activity {
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SignInActivity.this, SignUpActivity.class));
+                Intent intent = new Intent(SignInActivity.this, SignUpActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
             }
         });
     }
@@ -62,23 +69,29 @@ public class SignInActivity extends Activity {
                                 ConnectionConfig config = new ConnectionConfig(context);
                                 String login = loginText.getText().toString().trim();
                                 String password = passwordText.getText().toString().trim();
-                                AuthorisationController authorizationController = new AuthorisationController(config.getDatabaseRequester());
+                                AuthorisationController authorizationController =
+                                        new AuthorisationController(config.getDatabaseRequester());
                                 if (authorizationController.authorization(login, password)) {
                                     Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
                                     intent.putExtra("login", login);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(intent);
                                 } else {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(SignInActivity.this, "Authentication failed",
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                                    authFailed();
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        }
+
+                        private void authFailed() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(SignInActivity.this, "Authentication failed",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                     }).start();
                 }
@@ -94,6 +107,8 @@ public class SignInActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        loginText.setText(preferences.getString(LOGIN_TEXT, ""));
+        passwordText.setText(preferences.getString(PASSWORD_TEXT, ""));
     }
 
     @Override
@@ -102,22 +117,17 @@ public class SignInActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(LOGIN_TEXT, loginText.getText().toString());
+        editor.putString(PASSWORD_TEXT, passwordText.getText().toString());
+        editor.apply();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        preferences.edit().clear().apply();
     }
 }
