@@ -1,7 +1,7 @@
-package com.chat_client.json;
+package com.chat_client.util.json;
 
 
-import com.chat_client.entity.User;
+import com.chat_client.util.entity.User;
 
 public class JsonObject {
     private String command;

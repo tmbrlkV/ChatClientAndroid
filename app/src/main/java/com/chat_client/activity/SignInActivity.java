@@ -2,21 +2,21 @@ package com.chat_client.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.chat_client.R;
-import com.chat_client.auth.AuthorisationController;
-import com.chat_client.auth.ConnectionConfig;
-
-import org.zeromq.ZMQ;
+import com.chat_client.service.DatabaseService;
+import com.chat_client.util.IntentExtraStrings;
 
 public class SignInActivity extends Activity {
     private static final String LOGIN_TEXT = "loginTextSignIn";
@@ -24,6 +24,7 @@ public class SignInActivity extends Activity {
     private EditText loginText;
     private EditText passwordText;
     private SharedPreferences preferences;
+    private PendingIntent authorizeIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +33,11 @@ public class SignInActivity extends Activity {
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         loginText = (EditText) findViewById(R.id.loginEditText);
         passwordText = (EditText) findViewById(R.id.passwordEditText);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         signIn();
         signUp();
     }
@@ -65,33 +70,18 @@ public class SignInActivity extends Activity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            try (ZMQ.Context context = ZMQ.context(1)) {
-                                ConnectionConfig config = new ConnectionConfig(context);
-                                String login = loginText.getText().toString().trim();
-                                String password = passwordText.getText().toString().trim();
-                                AuthorisationController authorizationController =
-                                        new AuthorisationController(config.getDatabaseRequester());
-                                if (authorizationController.authorization(login, password)) {
-                                    Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
-                                    intent.putExtra("login", login);
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    startActivity(intent);
-                                } else {
-                                    authFailed();
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            Intent intent = getIntent();
+                            startService(intent);
                         }
 
-                        private void authFailed() {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(SignInActivity.this, "Authentication failed",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                        @NonNull
+                        private Intent getIntent() {
+                            Intent intent = new Intent(SignInActivity.this, DatabaseService.class);
+                            intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
+                            intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
+                            authorizeIntent = createPendingResult(0, new Intent(), 0);
+                            intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
+                            return intent;
                         }
                     }).start();
                 }
@@ -105,8 +95,26 @@ public class SignInActivity extends Activity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        boolean authorized = data.getBooleanExtra(IntentExtraStrings.VALID, false);
+        if (authorized) {
+            Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
+            intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
+            startActivity(intent);
+        } else {
+            Toast.makeText(SignInActivity.this, "Authorization failed",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        loadPreferences();
+    }
+
+    private void loadPreferences() {
         loginText.setText(preferences.getString(LOGIN_TEXT, ""));
         passwordText.setText(preferences.getString(PASSWORD_TEXT, ""));
     }
@@ -119,6 +127,10 @@ public class SignInActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        savePreferences();
+    }
+
+    private void savePreferences() {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(LOGIN_TEXT, loginText.getText().toString());
         editor.putString(PASSWORD_TEXT, passwordText.getText().toString());

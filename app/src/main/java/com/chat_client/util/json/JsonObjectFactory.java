@@ -1,6 +1,6 @@
-package com.chat_client.json;
+package com.chat_client.util.json;
 
-import com.chat_client.entity.User;
+import com.chat_client.util.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

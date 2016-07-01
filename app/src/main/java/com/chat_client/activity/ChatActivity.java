@@ -11,7 +11,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.chat_client.R;
-import com.chat_client.auth.ConnectionConfig;
+import com.chat_client.database.util.ConnectionConfig;
 import com.chat_client.util.StringCleaner;
 
 import org.zeromq.ZMQ;
@@ -22,6 +22,7 @@ public class ChatActivity extends Activity {
     private StringBuffer sendMessageBuffer = new StringBuffer();
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
     private ScrollView boardScrollView;
+    private Button sendButton;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -32,7 +33,8 @@ public class ChatActivity extends Activity {
         board = (TextView) findViewById(R.id.boardChatTextView);
         messageField = (EditText) findViewById(R.id.editTextMessage);
         boardScrollView = (ScrollView) findViewById(R.id.boardScrollView);
-        Button sendButton = (Button) findViewById(R.id.sendMessageButton);
+        sendButton = (Button) findViewById(R.id.sendMessageButton);
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,8 +49,14 @@ public class ChatActivity extends Activity {
                 boardScrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         new Thread(new Runnable() {
+            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try (ZMQ.Context context = ZMQ.context(1)) {
@@ -71,6 +79,7 @@ public class ChatActivity extends Activity {
         }).start();
     }
 
+
     private Thread startSenderThread(final String login, final ConnectionConfig config) {
         Thread send = new Thread(new Runnable() {
             @Override
@@ -89,7 +98,7 @@ public class ChatActivity extends Activity {
     }
 
     private Thread startReceiverThread(final ConnectionConfig config) {
-        Thread receive = new Thread(new Runnable() {
+        Thread receiver = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -103,41 +112,21 @@ public class ChatActivity extends Activity {
                             receiveMessageBuffer.append(board.getText());
                         }
                         receiveMessageBuffer.append("\n").append(message);
-                        receive();
+                        receiveMessage();
                     }
                 }
             }
         });
-        receive.start();
-        return receive;
+        receiver.start();
+        return receiver;
     }
 
-    private void receive() {
+    private void receiveMessage() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 board.setText(receiveMessageBuffer);
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 }

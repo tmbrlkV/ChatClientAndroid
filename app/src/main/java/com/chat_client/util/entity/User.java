@@ -1,4 +1,4 @@
-package com.chat_client.entity;
+package com.chat_client.util.entity;
 
 import java.io.Serializable;
 
