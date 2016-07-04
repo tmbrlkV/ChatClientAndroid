@@ -6,8 +6,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,20 +22,23 @@ import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
 
 public class ChatActivity extends Activity {
+    private static final String BOARD_TEXT = "board";
     private TextView board;
-    private boolean isRun;
+    private static boolean isRun;
     private EditText messageField;
     private StringBuffer sendMessageBuffer = new StringBuffer();
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
     private ScrollView boardScrollView;
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
+    private SharedPreferences preferences;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat_main);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         board = (TextView) findViewById(R.id.boardChatTextView);
         messageField = (EditText) findViewById(R.id.editTextMessage);
@@ -43,7 +48,7 @@ public class ChatActivity extends Activity {
             public void onReceive(Context context, Intent intent) {
                 String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
                 receiveMessageBuffer.append(receive);
-                board.setText(receiveMessageBuffer);
+                board.append(receiveMessageBuffer);
             }
 
         };
@@ -86,8 +91,23 @@ public class ChatActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        board.setText(preferences.getString(BOARD_TEXT, ""));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(BOARD_TEXT, board.getText().toString());
+        editor.apply();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        preferences.edit().clear().apply();
         unregisterReceiver(broadcastReceiver);
     }
 }
