@@ -49,6 +49,7 @@ public class ChatActivity extends Activity {
                 String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
                 receiveMessageBuffer.append(receive);
                 board.append(receiveMessageBuffer);
+                receiveMessageBuffer.setLength(0);
             }
 
         };
@@ -59,13 +60,16 @@ public class ChatActivity extends Activity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageBuffer.append(StringCleaner.messageTrim(messageField.getText().toString()));
-                Intent intent = new Intent(ChatService.BROADCAST_ACTION);
-                intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
-                sendMessageBuffer.setLength(0);
-                sendBroadcast(intent);
+                String message = StringCleaner.messageTrim(messageField.getText().toString());
+                if (!message.equals("")) {
+                    sendMessageBuffer.append(message);
+                    Intent intent = new Intent(ChatService.BROADCAST_ACTION);
+                    intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
+                    sendMessageBuffer.setLength(0);
+                    sendBroadcast(intent);
 
-                messageField.setText("");
+                    messageField.setText("");
+                }
             }
         });
 
