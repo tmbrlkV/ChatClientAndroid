@@ -11,14 +11,17 @@ import android.support.annotation.Nullable;
 import com.chat_client.activity.ChatActivity;
 import com.chat_client.database.util.ConnectionConfig;
 import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.notification.NotificationUtils;
 
 import org.zeromq.ZMQ;
 
 public class ChatService extends Service {
     private ZMQ.Context context = ZMQ.context(1);
-    private BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver broadcastServiceReceiver;
+    private NotificationUtils notificationUtils;
     private String message;
     public static final String BROADCAST_ACTION = "com.chat_client.activity";
+
 
     @Nullable
     @Override
@@ -29,25 +32,26 @@ public class ChatService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        broadcastReceiver = new BroadcastReceiver() {
+        broadcastServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 message = intent.getStringExtra(IntentExtraStrings.SEND_MESSAGE);
             }
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
-        registerReceiver(broadcastReceiver, intentFilter);
+        registerReceiver(broadcastServiceReceiver, intentFilter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(broadcastServiceReceiver);
         context.close();
     }
 
     @Override
-    public int onStartCommand(final Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, final int flags, int startId) {
+        notificationUtils = NotificationUtils.getInstance(getApplicationContext());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -69,7 +73,7 @@ public class ChatService extends Service {
                 }
             }
         }).start();
-        return super.onStartCommand(intent, flags, startId);
+        return START_NOT_STICKY;
     }
 
 
@@ -104,9 +108,10 @@ public class ChatService extends Service {
                         String message = receiver.recvStr(0);
                         receiveMessageBuffer.append("\n").append(message);
                         Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE, receiveMessageBuffer.toString());
+                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                                receiveMessageBuffer.toString());
                         sendBroadcast(intent);
-
+                        notificationUtils.createInfoNotification(message);
                         receiveMessageBuffer.setLength(0);
                     }
                 }

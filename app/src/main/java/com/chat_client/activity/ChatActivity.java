@@ -21,6 +21,7 @@ import com.chat_client.util.StringCleaner;
 
 public class ChatActivity extends Activity {
     private TextView board;
+    private boolean isRun;
     private EditText messageField;
     private StringBuffer sendMessageBuffer = new StringBuffer();
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
@@ -75,9 +76,13 @@ public class ChatActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, ChatService.class);
-        intent.putExtra(IntentExtraStrings.LOGIN, getIntent().getStringExtra(IntentExtraStrings.LOGIN));
-        startService(intent);
+        if (!isRun) {
+            Intent intent = new Intent(this, ChatService.class);
+            intent.putExtra(IntentExtraStrings.LOGIN, getIntent().getStringExtra(IntentExtraStrings.LOGIN));
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startService(intent);
+            isRun = true;
+        }
     }
 
     @Override
