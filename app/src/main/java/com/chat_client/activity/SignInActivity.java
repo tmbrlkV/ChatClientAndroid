@@ -67,24 +67,19 @@ public class SignInActivity extends Activity {
                     Toast.makeText(SignInActivity.this, "Invalid input data",
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Intent intent = getIntent();
-                            startService(intent);
-                        }
-
-                        @NonNull
-                        private Intent getIntent() {
-                            Intent intent = new Intent(SignInActivity.this, DatabaseService.class);
-                            intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
-                            intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
-                            authorizeIntent = createPendingResult(0, new Intent(), 0);
-                            intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
-                            return intent;
-                        }
-                    }).start();
+                    Intent intent = getIntent();
+                    startService(intent);
                 }
+            }
+
+            @NonNull
+            private Intent getIntent() {
+                Intent intent = new Intent(SignInActivity.this, DatabaseService.class);
+                intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
+                intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
+                authorizeIntent = createPendingResult(0, new Intent(), 0);
+                intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
+                return intent;
             }
 
             private boolean isInvalidData() {

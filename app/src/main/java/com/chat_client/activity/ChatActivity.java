@@ -2,6 +2,10 @@ package com.chat_client.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -11,10 +15,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.chat_client.R;
-import com.chat_client.database.util.ConnectionConfig;
+import com.chat_client.service.ChatService;
+import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
-
-import org.zeromq.ZMQ;
 
 public class ChatActivity extends Activity {
     private TextView board;
@@ -22,7 +25,8 @@ public class ChatActivity extends Activity {
     private StringBuffer sendMessageBuffer = new StringBuffer();
     private StringBuffer receiveMessageBuffer = new StringBuffer(0);
     private ScrollView boardScrollView;
-    private Button sendButton;
+    private BroadcastReceiver broadcastReceiver;
+    public final static String BROADCAST_ACTION = "com.chat_client.service";
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -33,19 +37,36 @@ public class ChatActivity extends Activity {
         board = (TextView) findViewById(R.id.boardChatTextView);
         messageField = (EditText) findViewById(R.id.editTextMessage);
         boardScrollView = (ScrollView) findViewById(R.id.boardScrollView);
-        sendButton = (Button) findViewById(R.id.sendMessageButton);
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
+                receiveMessageBuffer.append(receive);
+                board.setText(receiveMessageBuffer);
+            }
 
+        };
+        IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
+        registerReceiver(broadcastReceiver, intentFilter);
+
+        Button sendButton = (Button) findViewById(R.id.sendMessageButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sendMessageBuffer.append(StringCleaner.messageTrim(messageField.getText().toString()));
+                Intent intent = new Intent(ChatService.BROADCAST_ACTION);
+                intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
+                sendMessageBuffer.setLength(0);
+                sendBroadcast(intent);
+
                 messageField.setText("");
             }
         });
 
         boardScrollView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
+                                       int oldTop, int oldRight, int oldBottom) {
                 boardScrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
@@ -54,79 +75,14 @@ public class ChatActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-
-        new Thread(new Runnable() {
-            @TargetApi(Build.VERSION_CODES.KITKAT)
-            @Override
-            public void run() {
-                try (ZMQ.Context context = ZMQ.context(1)) {
-                    ConnectionConfig config = new ConnectionConfig(context);
-
-                    ZMQ.Socket sender = config.getSender();
-                    String login = getIntent().getStringExtra("login");
-                    sender.send(login + " has joined");
-
-                    Thread send = startSenderThread(login, config);
-                    Thread receive = startReceiverThread(config);
-
-                    send.join();
-                    receive.join();
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        Intent intent = new Intent(this, ChatService.class);
+        intent.putExtra(IntentExtraStrings.LOGIN, getIntent().getStringExtra(IntentExtraStrings.LOGIN));
+        startService(intent);
     }
 
-
-    private Thread startSenderThread(final String login, final ConnectionConfig config) {
-        Thread send = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ZMQ.Socket sender = config.getSender();
-                while (!Thread.currentThread().isInterrupted()) {
-                    if (sendMessageBuffer.length() != 0) {
-                        sender.send(login + ": " + sendMessageBuffer);
-                        sendMessageBuffer.setLength(0);
-                    }
-                }
-            }
-        });
-        send.start();
-        return send;
-    }
-
-    private Thread startReceiverThread(final ConnectionConfig config) {
-        Thread receiver = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                ZMQ.Socket receiver = config.getReceiver();
-                ZMQ.Poller poller = config.getPoller();
-                while (!Thread.currentThread().isInterrupted()) {
-                    int events = poller.poll();
-                    if (events > 0) {
-                        String message = receiver.recvStr(0);
-                        if (receiveMessageBuffer.length() == 0) {
-                            receiveMessageBuffer.append(board.getText());
-                        }
-                        receiveMessageBuffer.append("\n").append(message);
-                        receiveMessage();
-                    }
-                }
-            }
-        });
-        receiver.start();
-        return receiver;
-    }
-
-    private void receiveMessage() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                board.setText(receiveMessageBuffer);
-            }
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
     }
 }

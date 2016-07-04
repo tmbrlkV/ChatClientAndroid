@@ -1,11 +1,9 @@
 package com.chat_client.activity;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -68,26 +66,20 @@ public class SignUpActivity extends Activity {
                     Toast.makeText(SignUpActivity.this, "Passwords don't match",
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    new Thread(new Runnable() {
-                        @TargetApi(Build.VERSION_CODES.KITKAT)
-                        @Override
-                        public void run() {
-                            Intent intent = getIntent();
-                            startService(intent);
-                        }
-
-                        @NonNull
-                        private Intent getIntent() {
-                            Intent intent = new Intent(SignUpActivity.this, DatabaseService.class);
-                            intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
-                            intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
-                            registerIntent = createPendingResult(0, new Intent(), 0);
-                            intent.putExtra(IntentExtraStrings.REGISTER, registerIntent);
-                            return intent;
-                        }
-                    }).start();
+                    Intent intent = getIntent();
+                    startService(intent);
                 }
 
+            }
+
+            @NonNull
+            private Intent getIntent() {
+                Intent intent = new Intent(SignUpActivity.this, DatabaseService.class);
+                intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
+                intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
+                registerIntent = createPendingResult(0, new Intent(), 0);
+                intent.putExtra(IntentExtraStrings.REGISTER, registerIntent);
+                return intent;
             }
 
             private boolean isValidInput(String login, String password, String passwordRepeat) {

@@ -6,4 +6,6 @@ public interface IntentExtraStrings {
     String AUTHORIZE = "authorizeIntent";
     String REGISTER = "registerIntent";
     String VALID = "valid";
+    String SEND_MESSAGE = "send";
+    String RECEIVE_MESSAGE = "receive";
 }
