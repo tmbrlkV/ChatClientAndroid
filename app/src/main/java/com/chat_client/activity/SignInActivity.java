@@ -115,14 +115,15 @@ public class SignInActivity extends Activity {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
         savePreferences();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        preferences.edit().clear().apply();
     }
 
     private void savePreferences() {
@@ -135,6 +136,6 @@ public class SignInActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        preferences.edit().clear().apply();
+//        preferences.edit().clear().apply();
     }
 }
