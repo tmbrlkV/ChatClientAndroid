@@ -1,13 +1,15 @@
 package com.chat_client.activity;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,7 +22,7 @@ import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
 import com.chat_client.util.notification.NotificationUtils;
 
-public class ChatActivity extends Activity {
+public class ChatActivity extends AppCompatActivity {
     private TextView board;
     private EditText messageField;
     private StringBuffer sendMessageBuffer = new StringBuffer();
@@ -62,6 +64,7 @@ public class ChatActivity extends Activity {
         }
 
         Button sendButton = (Button) findViewById(R.id.sendMessageButton);
+        assert sendButton != null;
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,6 +104,12 @@ public class ChatActivity extends Activity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.chat_menu, menu);
+        return true;
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
@@ -137,5 +146,21 @@ public class ChatActivity extends Activity {
         stopService(new Intent(this, ChatService.class));
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         unregisterReceiver(broadcastReceiver);
+    }
+
+    public void turnOnMenuClick(MenuItem item) {
+        if (!item.isChecked()) {
+            NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
+            utils.turnOn();
+            item.setChecked(true);
+        }
+    }
+
+    public void turnOffMenuClick(MenuItem item) {
+        if (!item.isChecked()) {
+            NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
+            utils.turnOff();
+            item.setChecked(true);
+        }
     }
 }

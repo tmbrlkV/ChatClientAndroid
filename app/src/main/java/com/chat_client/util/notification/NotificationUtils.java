@@ -15,6 +15,7 @@ public class NotificationUtils {
 
     private static Context context;
     private NotificationManager manager;
+    private boolean turn = true;
 
 
     private NotificationUtils(Context context) {
@@ -32,6 +33,7 @@ public class NotificationUtils {
     }
 
     public int createInfoNotification(String message) {
+        if (!instance.turn) return -1;
         Intent notificationIntent = new Intent(context, ChatActivity.class); // HomeActivity opening by click
         NotificationCompat.Builder nb = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.mipmap.ic_launcher)
@@ -51,5 +53,13 @@ public class NotificationUtils {
 
     public void cancelAll() {
         manager.cancelAll();
+    }
+
+    public void turnOff() {
+        instance.turn = false;
+    }
+
+    public void turnOn() {
+        instance.turn = true;
     }
 }
