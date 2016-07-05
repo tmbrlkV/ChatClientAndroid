@@ -18,6 +18,7 @@ import com.chat_client.R;
 import com.chat_client.service.ChatService;
 import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
+import com.chat_client.util.notification.NotificationUtils;
 
 public class ChatActivity extends Activity {
     private TextView board;
@@ -50,6 +51,15 @@ public class ChatActivity extends Activity {
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastReceiver, intentFilter);
+
+        String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
+        if (login == null) {
+            onBackPressed();
+            Intent intent = new Intent(this, SignInActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return;
+        }
 
         Button sendButton = (Button) findViewById(R.id.sendMessageButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -93,6 +103,7 @@ public class ChatActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, false);
         sendBroadcast(intent);
@@ -114,10 +125,17 @@ public class ChatActivity extends Activity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        NotificationUtils.getInstance(getApplicationContext()).cancelAll();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         isRun = false;
         stopService(new Intent(this, ChatService.class));
+        NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         unregisterReceiver(broadcastReceiver);
     }
 }

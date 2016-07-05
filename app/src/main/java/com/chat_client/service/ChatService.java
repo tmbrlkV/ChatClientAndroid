@@ -19,7 +19,6 @@ import org.zeromq.ZMQ;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 public class ChatService extends Service {
     private BroadcastReceiver broadcastServiceReceiver;
@@ -121,6 +120,7 @@ public class ChatService extends Service {
                 while (!Thread.currentThread().isInterrupted()) {
                     if (!isRun) {
                         isRun = true;
+                        notificationUtils.cancelAll();
                         break;
                     }
                     int events = poller.poll();
