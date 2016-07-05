@@ -8,4 +8,5 @@ public interface IntentExtraStrings {
     String VALID = "valid";
     String SEND_MESSAGE = "send";
     String RECEIVE_MESSAGE = "receive";
+    String PAUSE = "pause";
 }

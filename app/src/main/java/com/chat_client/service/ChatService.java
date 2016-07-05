@@ -1,10 +1,12 @@
 package com.chat_client.service;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
@@ -15,13 +17,18 @@ import com.chat_client.util.notification.NotificationUtils;
 
 import org.zeromq.ZMQ;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
 public class ChatService extends Service {
-    private ZMQ.Context context = ZMQ.context(1);
     private BroadcastReceiver broadcastServiceReceiver;
     private NotificationUtils notificationUtils;
     private String message;
     public static final String BROADCAST_ACTION = "com.chat_client.activity";
-
+    private static List<Thread> threads = new ArrayList<>();
+    private static boolean isRun = true;
+    private static boolean isPause;
 
     @Nullable
     @Override
@@ -32,10 +39,17 @@ public class ChatService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (!threads.isEmpty()) {
+            isRun = false;
+            for (Thread thread : threads) {
+                thread.interrupt();
+            }
+        }
         broadcastServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 message = intent.getStringExtra(IntentExtraStrings.SEND_MESSAGE);
+                isPause = intent.getBooleanExtra("pause", false);
             }
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
@@ -46,16 +60,16 @@ public class ChatService extends Service {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(broadcastServiceReceiver);
-        context.close();
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, int startId) {
         notificationUtils = NotificationUtils.getInstance(getApplicationContext());
         new Thread(new Runnable() {
+            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try {
+                try (ZMQ.Context context = ZMQ.context(1)) {
                     ConnectionConfig config = new ConnectionConfig(context);
 
                     ZMQ.Socket sender = config.getSender();
@@ -64,6 +78,8 @@ public class ChatService extends Service {
 
                     Thread send = startSenderThread(login, config);
                     Thread receive = startReceiverThread(config);
+
+                    threads.add(send);
 
                     send.join();
                     receive.join();
@@ -103,6 +119,10 @@ public class ChatService extends Service {
                 ZMQ.Socket receiver = config.getReceiver();
                 ZMQ.Poller poller = config.getPoller();
                 while (!Thread.currentThread().isInterrupted()) {
+                    if (!isRun) {
+                        isRun = true;
+                        break;
+                    }
                     int events = poller.poll();
                     if (events > 0) {
                         String message = receiver.recvStr(0);
@@ -111,7 +131,9 @@ public class ChatService extends Service {
                         intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
                                 receiveMessageBuffer.toString());
                         sendBroadcast(intent);
-                        notificationUtils.createInfoNotification(message);
+                        if (isPause) {
+                            notificationUtils.createInfoNotification(message);
+                        }
                         receiveMessageBuffer.setLength(0);
                     }
                 }
