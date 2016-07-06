@@ -8,4 +8,7 @@
     <string name="back">Back</string>
     <string name="repeat_password">Repeat password</string>
     <string name="send">Send</string>
+    <string name="notification">Notifications</string>
+    <string name="notification_on">On</string>
+    <string name="notification_off">Off</string>
 </resources>

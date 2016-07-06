@@ -1,10 +1,12 @@
 package com.chat_client.service;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
@@ -16,12 +18,15 @@ import com.chat_client.util.notification.NotificationUtils;
 import org.zeromq.ZMQ;
 
 public class ChatService extends Service {
-    private ZMQ.Context context = ZMQ.context(1);
     private BroadcastReceiver broadcastServiceReceiver;
     private NotificationUtils notificationUtils;
     private String message;
-    public static final String BROADCAST_ACTION = "com.chat_client.activity";
 
+    private static Thread send;
+    private static boolean isRun = true;
+    private static boolean isPause;
+    private static boolean turnNotification = true;
+    public static final String BROADCAST_ACTION = "com.chat_client.activity";
 
     @Nullable
     @Override
@@ -32,37 +37,47 @@ public class ChatService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        notificationUtils = NotificationUtils.getInstance(getApplicationContext());
+        stopSenderThreadIfNotInterrupted();
         broadcastServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 message = intent.getStringExtra(IntentExtraStrings.SEND_MESSAGE);
+                isPause = intent.getBooleanExtra(IntentExtraStrings.PAUSE, false);
+                turnNotification = intent.getBooleanExtra(IntentExtraStrings.NOTIFICATIONS, true);
             }
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastServiceReceiver, intentFilter);
     }
 
+    private void stopSenderThreadIfNotInterrupted() {
+        if (send != null && !send.isInterrupted()) {
+            isRun = false;
+            send.interrupt();
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(broadcastServiceReceiver);
-        context.close();
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, int startId) {
-        notificationUtils = NotificationUtils.getInstance(getApplicationContext());
         new Thread(new Runnable() {
+            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try {
+                try (ZMQ.Context context = ZMQ.context(1)) {
                     ConnectionConfig config = new ConnectionConfig(context);
 
                     ZMQ.Socket sender = config.getSender();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     sender.send(login + " has joined");
 
-                    Thread send = startSenderThread(login, config);
+                    send = startSenderThread(login, config);
                     Thread receive = startReceiverThread(config);
 
                     send.join();
@@ -103,6 +118,7 @@ public class ChatService extends Service {
                 ZMQ.Socket receiver = config.getReceiver();
                 ZMQ.Poller poller = config.getPoller();
                 while (!Thread.currentThread().isInterrupted()) {
+                    if (stopReceiver()) break;
                     int events = poller.poll();
                     if (events > 0) {
                         String message = receiver.recvStr(0);
@@ -111,9 +127,25 @@ public class ChatService extends Service {
                         intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
                                 receiveMessageBuffer.toString());
                         sendBroadcast(intent);
-                        notificationUtils.createInfoNotification(message);
+                        notify(message);
+
                         receiveMessageBuffer.setLength(0);
                     }
+                }
+            }
+
+            private boolean stopReceiver() {
+                if (!isRun) {
+                    isRun = true;
+                    notificationUtils.cancelAll();
+                    return true;
+                }
+                return false;
+            }
+
+            private void notify(String message) {
+                if (isPause && turnNotification) {
+                    notificationUtils.createInfoNotification(message);
                 }
             }
         });

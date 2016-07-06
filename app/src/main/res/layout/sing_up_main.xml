@@ -7,12 +7,12 @@
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/loginSignUp"
+        android:id="@+id/loginSignUpEditText"
         android:hint="@string/enter_a_login"
         android:layout_marginTop="45dp"
         android:layout_below="@+id/signUpTextView"
-        android:layout_alignLeft="@+id/passwordSignUp"
-        android:layout_alignStart="@+id/passwordSignUp" />
+        android:layout_alignLeft="@+id/passwordSignUpEditText"
+        android:layout_alignStart="@+id/passwordSignUpEditText" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -20,8 +20,8 @@
         android:inputType="textPassword"
         android:ems="10"
         android:hint="@string/password"
-        android:id="@+id/passwordSignUp"
-        android:layout_below="@+id/loginSignUp"
+        android:id="@+id/passwordSignUpEditText"
+        android:layout_below="@+id/loginSignUpEditText"
         android:layout_centerHorizontal="true" />
 
     <EditText
@@ -29,9 +29,9 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/passwordSignUpRepeat"
+        android:id="@+id/passwordSignUpEditTextRepeat"
         android:hint="@string/repeat_password"
-        android:layout_below="@+id/passwordSignUp"
+        android:layout_below="@+id/passwordSignUpEditText"
         android:layout_centerHorizontal="true" />
 
     <Button
@@ -39,11 +39,11 @@
         android:layout_height="wrap_content"
         android:text="@string/sign_up"
         android:id="@+id/signUpPageButton"
-        android:layout_below="@+id/passwordSignUpRepeat"
-        android:layout_alignLeft="@+id/passwordSignUpRepeat"
-        android:layout_alignStart="@+id/passwordSignUpRepeat"
-        android:layout_alignRight="@+id/passwordSignUpRepeat"
-        android:layout_alignEnd="@+id/passwordSignUpRepeat" />
+        android:layout_below="@+id/passwordSignUpEditTextRepeat"
+        android:layout_alignLeft="@+id/passwordSignUpEditTextRepeat"
+        android:layout_alignStart="@+id/passwordSignUpEditTextRepeat"
+        android:layout_alignRight="@+id/passwordSignUpEditTextRepeat"
+        android:layout_alignEnd="@+id/passwordSignUpEditTextRepeat" />
 
     <Button
         android:layout_width="wrap_content"

@@ -18,7 +18,6 @@ import com.chat_client.util.IntentExtraStrings;
 import org.zeromq.ZMQ;
 
 public class DatabaseService extends Service {
-    private ZMQ.Context context = ZMQ.context(1);
     private PendingIntent pendingIntent;
 
     @Nullable
@@ -34,7 +33,7 @@ public class DatabaseService extends Service {
             @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try {
+                try (ZMQ.Context context = ZMQ.context(1)) {
                     ConnectionConfig config = new ConnectionConfig(context);
 
                     DatabaseController controller;
@@ -68,6 +67,5 @@ public class DatabaseService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        context.close();
     }
 }
