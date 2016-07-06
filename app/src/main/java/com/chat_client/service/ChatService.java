@@ -122,7 +122,7 @@ public class ChatService extends Service {
                     int events = poller.poll();
                     if (events > 0) {
                         String message = receiver.recvStr(0);
-                        receiveMessageBuffer.append("\n").append(message);
+                        receiveMessageBuffer.append(message);
                         Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
                         intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
                                 receiveMessageBuffer.toString());

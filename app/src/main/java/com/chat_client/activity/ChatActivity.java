@@ -27,7 +27,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class ChatActivity extends AppCompatActivity {
-
     @BindView(R.id.messageField)
     protected EditText messageField;
 
@@ -36,9 +35,7 @@ public class ChatActivity extends AppCompatActivity {
     @BindView(R.id.boardListView)
     protected ListView boardListView;
 
-
     private StringBuffer sendMessageBuffer = new StringBuffer();
-
 
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
@@ -74,8 +71,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onReceive(Context context, Intent intent) {
-                //TODO: Find from where this extra \n in front of string appears
-                String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE).trim();
+                String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
                 ChatMessage message = new ChatMessage(receive, currentLogin);
                 adapter.add(message);
             }
