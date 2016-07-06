@@ -22,25 +22,47 @@ import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
 import com.chat_client.util.notification.NotificationUtils;
 
-public class ChatActivity extends AppCompatActivity {
-    private TextView board;
-    private EditText messageField;
-    private StringBuffer sendMessageBuffer = new StringBuffer();
-    private StringBuffer receiveMessageBuffer = new StringBuffer(0);
-    private ScrollView boardScrollView;
-    private BroadcastReceiver broadcastReceiver;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-    public static boolean isRun;
+public class ChatActivity extends AppCompatActivity {
+    @BindView(R.id.boardChatTextView)
+    protected TextView board;
+    @BindView(R.id.messageField)
+    protected EditText messageField;
+    @BindView(R.id.boardScrollView)
+    protected ScrollView boardScrollView;
+    @BindView(R.id.sendMessageButton)
+    protected Button sendMessageButton;
+
+    private StringBuffer sendMessageBuffer = new StringBuffer();
+    private StringBuffer receiveMessageBuffer = new StringBuffer();
+
+    private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
+    private static boolean isRun;
+    private static boolean turnNotification = true;
+
+
+    private void nullUserProtection() {
+        String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
+        if (login == null) {
+            Intent intent = new Intent(this, SignInActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+        }
+    }
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        nullUserProtection();
         setContentView(R.layout.chat_main);
-        board = (TextView) findViewById(R.id.boardChatTextView);
-        messageField = (EditText) findViewById(R.id.editTextMessage);
-        boardScrollView = (ScrollView) findViewById(R.id.boardScrollView);
+        ButterKnife.bind(this);
+
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -51,35 +73,9 @@ public class ChatActivity extends AppCompatActivity {
             }
 
         };
+
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastReceiver, intentFilter);
-
-        String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
-        if (login == null) {
-            onBackPressed();
-            Intent intent = new Intent(this, SignInActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            return;
-        }
-
-        Button sendButton = (Button) findViewById(R.id.sendMessageButton);
-        assert sendButton != null;
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = StringCleaner.messageTrim(messageField.getText().toString());
-                if (!message.equals("")) {
-                    sendMessageBuffer.append(message);
-                    Intent intent = new Intent(ChatService.BROADCAST_ACTION);
-                    intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
-                    sendMessageBuffer.setLength(0);
-                    sendBroadcast(intent);
-
-                    messageField.setText("");
-                }
-            }
-        });
 
         boardScrollView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -88,6 +84,19 @@ public class ChatActivity extends AppCompatActivity {
                 boardScrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
+    }
+
+    @OnClick(R.id.sendMessageButton)
+    protected void sendMessage() {
+        String message = StringCleaner.messageTrim(messageField.getText().toString());
+        if (!message.equals("")) {
+            sendMessageBuffer.append(message);
+            Intent intent = new Intent(ChatService.BROADCAST_ACTION);
+            intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
+            sendMessageBuffer.setLength(0);
+            sendBroadcast(intent);
+            messageField.setText("");
+        }
     }
 
     @Override
@@ -123,6 +132,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onPause();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, true);
+        intent.putExtra(IntentExtraStrings.NOTIFICATIONS, turnNotification);
         sendBroadcast(intent);
     }
 
@@ -130,13 +140,6 @@ public class ChatActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         isRun = false;
-        stopService(new Intent(this, ChatService.class));
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        NotificationUtils.getInstance(getApplicationContext()).cancelAll();
     }
 
     @Override
@@ -150,16 +153,14 @@ public class ChatActivity extends AppCompatActivity {
 
     public void turnOnMenuClick(MenuItem item) {
         if (!item.isChecked()) {
-            NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
-            utils.turnOn();
+            turnNotification = true;
             item.setChecked(true);
         }
     }
 
     public void turnOffMenuClick(MenuItem item) {
         if (!item.isChecked()) {
-            NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
-            utils.turnOff();
+            turnNotification = false;
             item.setChecked(true);
         }
     }

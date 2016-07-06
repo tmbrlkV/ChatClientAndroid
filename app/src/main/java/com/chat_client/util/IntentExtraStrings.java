@@ -9,4 +9,5 @@ public interface IntentExtraStrings {
     String SEND_MESSAGE = "send";
     String RECEIVE_MESSAGE = "receive";
     String PAUSE = "pause";
+    String NOTIFICATIONS = "notificationOff";
 }

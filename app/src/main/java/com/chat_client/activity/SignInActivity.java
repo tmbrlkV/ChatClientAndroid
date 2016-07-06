@@ -1,15 +1,10 @@
 package com.chat_client.activity;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -18,75 +13,58 @@ import com.chat_client.R;
 import com.chat_client.service.DatabaseService;
 import com.chat_client.util.IntentExtraStrings;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class SignInActivity extends Activity {
-    private static final String LOGIN_TEXT = "loginTextSignIn";
-    private static final String PASSWORD_TEXT = "passwordTextSignIn";
-    private EditText loginText;
-    private EditText passwordText;
-    private SharedPreferences preferences;
-    private PendingIntent authorizeIntent;
+    @BindView(R.id.loginEditText)
+    protected EditText loginEditText;
+    @BindView(R.id.passwordEditText)
+    protected EditText passwordEditText;
+    @BindView(R.id.signUpMainLayoutButton)
+    protected Button signUpMainLayoutButton;
+    @BindView(R.id.signInMainLayoutButton)
+    protected Button signInMainLayoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sign_in_main);
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        loginText = (EditText) findViewById(R.id.loginEditText);
-        passwordText = (EditText) findViewById(R.id.passwordEditText);
+        ButterKnife.bind(this);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        signIn();
-        signUp();
+    @OnClick(R.id.signUpMainLayoutButton)
+    protected void startSignUp() {
+        Intent intent = new Intent(SignInActivity.this, SignUpActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
-    private void signUp() {
-        Button signUpButton = (Button) findViewById(R.id.signUpMainLayoutButton);
-        assert signUpButton != null;
-        signUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SignInActivity.this, SignUpActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        });
+    @OnClick(R.id.signInMainLayoutButton)
+    protected void signIn() {
+        if (isNotValidDataInput()) {
+            Toast.makeText(SignInActivity.this, "Invalid input data",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Intent intent = getSignInIntent();
+            startService(intent);
+        }
     }
 
-    private void signIn() {
-        Button signInButton = (Button) findViewById(R.id.signInMainLayoutButton);
+    @NonNull
+    private Intent getSignInIntent() {
+        Intent intent = new Intent(SignInActivity.this, DatabaseService.class);
+        intent.putExtra(IntentExtraStrings.LOGIN, loginEditText.getText().toString().trim());
+        intent.putExtra(IntentExtraStrings.PASSWORD, passwordEditText.getText().toString().trim());
+        PendingIntent authorizeIntent = createPendingResult(0, new Intent(), 0);
+        intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
+        return intent;
+    }
 
-        assert signInButton != null;
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.KITKAT)
-            @Override
-            public void onClick(View v) {
-                if (isInvalidData()) {
-                    Toast.makeText(SignInActivity.this, "Invalid input data",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    Intent intent = getIntent();
-                    startService(intent);
-                }
-            }
-
-            @NonNull
-            private Intent getIntent() {
-                Intent intent = new Intent(SignInActivity.this, DatabaseService.class);
-                intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
-                intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
-                authorizeIntent = createPendingResult(0, new Intent(), 0);
-                intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
-                return intent;
-            }
-
-            private boolean isInvalidData() {
-                return passwordText == null || loginText == null || loginText.getText().length() == 0
-                        || passwordText.getText().length() == 0;
-            }
-        });
+    private boolean isNotValidDataInput() {
+        return passwordEditText == null || loginEditText == null || loginEditText.getText().length() == 0
+                || passwordEditText.getText().length() == 0;
     }
 
     @Override
@@ -95,47 +73,11 @@ public class SignInActivity extends Activity {
         boolean authorized = data.getBooleanExtra(IntentExtraStrings.VALID, false);
         if (authorized) {
             Intent intent = new Intent(SignInActivity.this, ChatActivity.class);
-            intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
+            intent.putExtra(IntentExtraStrings.LOGIN, loginEditText.getText().toString().trim());
             startActivity(intent);
         } else {
             Toast.makeText(SignInActivity.this, "Authorization failed",
                     Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadPreferences();
-    }
-
-    private void loadPreferences() {
-        loginText.setText(preferences.getString(LOGIN_TEXT, ""));
-        passwordText.setText(preferences.getString(PASSWORD_TEXT, ""));
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        savePreferences();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        preferences.edit().clear().apply();
-    }
-
-    private void savePreferences() {
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(LOGIN_TEXT, loginText.getText().toString());
-        editor.putString(PASSWORD_TEXT, passwordText.getText().toString());
-        editor.apply();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        preferences.edit().clear().apply();
     }
 }

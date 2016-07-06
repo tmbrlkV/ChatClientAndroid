@@ -7,7 +7,7 @@
         android:id="@+id/boardScrollView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_above="@+id/editTextMessage"
+        android:layout_above="@+id/messageField"
         android:layout_alignParentTop="false"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true">
@@ -23,7 +23,7 @@
     </ScrollView>
 
     <EditText
-        android:id="@+id/editTextMessage"
+        android:id="@+id/messageField"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
