@@ -10,16 +10,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import com.chat_client.R;
 import com.chat_client.service.ChatService;
+import com.chat_client.util.ChatArrayAdapter;
 import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
+import com.chat_client.util.entity.ChatMessage;
 import com.chat_client.util.notification.NotificationUtils;
 
 import butterknife.BindView;
@@ -27,22 +27,24 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class ChatActivity extends AppCompatActivity {
-    @BindView(R.id.boardChatTextView)
-    protected TextView board;
+
     @BindView(R.id.messageField)
     protected EditText messageField;
-    @BindView(R.id.boardScrollView)
-    protected ScrollView boardScrollView;
+
     @BindView(R.id.sendMessageButton)
     protected Button sendMessageButton;
+    @BindView(R.id.boardListView)
+    protected ListView boardListView;
+
 
     private StringBuffer sendMessageBuffer = new StringBuffer();
-    private StringBuffer receiveMessageBuffer = new StringBuffer();
+
 
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
     private static boolean isRun;
     private static boolean turnNotification = true;
+    private ChatArrayAdapter adapter;
 
 
     private void nullUserProtection() {
@@ -63,27 +65,24 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.chat_main);
         ButterKnife.bind(this);
 
+        adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
+        boardListView.setAdapter(adapter);
+
         broadcastReceiver = new BroadcastReceiver() {
+            //TODO: Find where to put this login
+            private String currentLogin = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
+
             @Override
             public void onReceive(Context context, Intent intent) {
-                String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
-                receiveMessageBuffer.append(receive);
-                board.append(receiveMessageBuffer);
-                receiveMessageBuffer.setLength(0);
+                //TODO: Find from where this extra \n in front of string appears
+                String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE).trim();
+                ChatMessage message = new ChatMessage(receive, currentLogin);
+                adapter.add(message);
             }
 
         };
-
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastReceiver, intentFilter);
-
-        boardScrollView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
-                                       int oldTop, int oldRight, int oldBottom) {
-                boardScrollView.fullScroll(View.FOCUS_DOWN);
-            }
-        });
     }
 
     @OnClick(R.id.sendMessageButton)
