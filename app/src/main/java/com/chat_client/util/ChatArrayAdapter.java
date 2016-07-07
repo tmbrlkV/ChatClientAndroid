@@ -10,11 +10,14 @@ import android.widget.TextView;
 import com.chat_client.R;
 import com.chat_client.util.entity.ChatMessage;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
     protected TextView chatText;
+    protected TextView timeView;
     private List<ChatMessage> chatMessageList = new ArrayList<>();
 
     public ChatArrayAdapter(Context context, int textViewResourceId) {
@@ -50,6 +53,10 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
         }
         chatText = (TextView) row.findViewById(R.id.message_row);
         chatText.setText(chatMessage.getMessage());
+
+        timeView = (TextView) row.findViewById(R.id.message_time);
+        timeView.setText(DateFormat.getTimeInstance().format(new Date()));
+
         return row;
     }
 }
