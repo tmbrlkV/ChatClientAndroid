@@ -18,15 +18,16 @@ import com.chat_client.util.notification.NotificationUtils;
 import org.zeromq.ZMQ;
 
 public class ChatService extends Service {
+    public static final String BROADCAST_ACTION = "com.chat_client.activity";
     private BroadcastReceiver broadcastServiceReceiver;
     private NotificationUtils notificationUtils;
     private String message;
+    private StringBuffer messageAppender = new StringBuffer(0);
 
     private static Thread send;
     private static boolean isRun = true;
     private static boolean isPause;
     private static boolean turnNotification = true;
-    public static final String BROADCAST_ACTION = "com.chat_client.activity";
 
     @Nullable
     @Override
@@ -75,7 +76,9 @@ public class ChatService extends Service {
 
                     ZMQ.Socket sender = config.getSender();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
-                    sender.send(login + " has joined");
+                    messageAppender.append(login).append(" has joined");
+                    sender.send(messageAppender.toString());
+                    messageAppender.setLength(0);
 
                     send = startSenderThread(login, config);
                     Thread receive = startReceiverThread(config);
@@ -99,7 +102,9 @@ public class ChatService extends Service {
                 ZMQ.Socket sender = config.getSender();
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
-                        sender.send(login + ": " + message);
+                        messageAppender.append(login).append(": ").append(message);
+                        sender.send(messageAppender.toString());
+                        messageAppender.setLength(0);
                         message = null;
                     }
                 }
