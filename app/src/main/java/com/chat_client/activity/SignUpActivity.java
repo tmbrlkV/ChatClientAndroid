@@ -12,6 +12,8 @@ import android.widget.Toast;
 import com.chat_client.R;
 import com.chat_client.service.DatabaseService;
 import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,10 +29,6 @@ public class SignUpActivity extends Activity {
 
     @BindView(R.id.signUpPageButton)
     protected Button signUpButton;
-    @BindView(R.id.backToSignInButton)
-    protected Button backButton;
-
-    protected PendingIntent registerIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +37,14 @@ public class SignUpActivity extends Activity {
         ButterKnife.bind(this);
     }
 
-    @OnClick(R.id.backToSignInButton)
-    protected void backToSignIn() {
-        Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @OnClick(R.id.signUpPageButton)
@@ -75,7 +76,7 @@ public class SignUpActivity extends Activity {
         Intent intent = new Intent(SignUpActivity.this, DatabaseService.class);
         intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
         intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
-        registerIntent = createPendingResult(0, new Intent(), 0);
+        PendingIntent registerIntent = createPendingResult(0, new Intent(), 0);
         intent.putExtra(IntentExtraStrings.REGISTER, registerIntent);
         return intent;
     }

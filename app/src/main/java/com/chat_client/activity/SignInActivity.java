@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 import com.chat_client.R;
 import com.chat_client.service.DatabaseService;
 import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,11 +30,38 @@ public class SignInActivity extends Activity {
     @BindView(R.id.signInMainLayoutButton)
     protected Button signInMainLayoutButton;
 
+    private WifiAlertUtil wifiAlertUtil;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wifiAlertUtil = WifiAlertUtil.getInstance(AlertDialogUtils.getInstance(this));
         setContentView(R.layout.sign_in_main);
         ButterKnife.bind(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        wifiAlertUtil.alert();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        wifiAlertUtil.dismiss();
+    }
+
+    @Override
+    public void onBackPressed() {
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true);
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @OnClick(R.id.signUpMainLayoutButton)

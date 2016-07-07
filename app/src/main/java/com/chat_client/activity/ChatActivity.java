@@ -8,23 +8,19 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.text.method.BaseKeyListener;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.chat_client.R;
 import com.chat_client.service.ChatService;
 import com.chat_client.util.ChatArrayAdapter;
 import com.chat_client.util.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.ChatMessage;
 import com.chat_client.util.notification.NotificationUtils;
 
@@ -46,7 +42,6 @@ public class ChatActivity extends AppCompatActivity {
     private static boolean isRun;
     private static boolean turnNotification = true;
     private ChatArrayAdapter adapter;
-
 
     private void nullUserProtection() {
         String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);

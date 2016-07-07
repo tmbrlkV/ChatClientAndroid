@@ -11,4 +11,8 @@
     <string name="notification">Notifications</string>
     <string name="notification_on">On</string>
     <string name="notification_off">Off</string>
+    <string name="wifi_dialog_title">Connection is lost</string>
+    <string name="wifi_dialog_message">Do you want to open WIFI-Settings?</string>
+    <string name="wifi_dialog_yes">Yes</string>
+    <string name="wifi_dialog_no">No</string>
 </resources>
