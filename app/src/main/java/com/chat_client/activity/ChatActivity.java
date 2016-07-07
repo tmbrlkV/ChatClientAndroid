@@ -8,11 +8,17 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.method.BaseKeyListener;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.chat_client.R;
 import com.chat_client.service.ChatService;
@@ -34,8 +40,6 @@ public class ChatActivity extends AppCompatActivity {
     protected Button sendMessageButton;
     @BindView(R.id.boardListView)
     protected ListView boardListView;
-
-    private StringBuffer sendMessageBuffer = new StringBuffer();
 
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
@@ -65,10 +69,8 @@ public class ChatActivity extends AppCompatActivity {
         adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
         boardListView.setAdapter(adapter);
 
+        final String currentLogin = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         broadcastReceiver = new BroadcastReceiver() {
-            //TODO: Find where to put this login
-            private String currentLogin = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
-
             @Override
             public void onReceive(Context context, Intent intent) {
                 String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
@@ -77,6 +79,7 @@ public class ChatActivity extends AppCompatActivity {
             }
 
         };
+
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastReceiver, intentFilter);
     }
@@ -85,10 +88,8 @@ public class ChatActivity extends AppCompatActivity {
     protected void sendMessage() {
         String message = StringCleaner.messageTrim(messageField.getText().toString());
         if (!message.equals("")) {
-            sendMessageBuffer.append(message);
             Intent intent = new Intent(ChatService.BROADCAST_ACTION);
-            intent.putExtra(IntentExtraStrings.SEND_MESSAGE, sendMessageBuffer.toString());
-            sendMessageBuffer.setLength(0);
+            intent.putExtra(IntentExtraStrings.SEND_MESSAGE, message);
             sendBroadcast(intent);
             messageField.setText("");
         }
