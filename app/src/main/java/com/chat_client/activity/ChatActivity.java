@@ -146,13 +146,14 @@ public class ChatActivity extends AppCompatActivity {
         if (!item.isChecked()) {
             turnNotification = true;
             item.setChecked(true);
+        } else {
+            turnNotification = false;
+            item.setChecked(false);
         }
     }
 
-    public void turnOffMenuClick(MenuItem item) {
-        if (!item.isChecked()) {
-            turnNotification = false;
-            item.setChecked(true);
-        }
+    public void clearScreen(MenuItem item) {
+        adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
+        boardListView.setAdapter(adapter);
     }
 }

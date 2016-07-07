@@ -8,11 +8,12 @@
     <string name="back">Back</string>
     <string name="repeat_password">Repeat password</string>
     <string name="send">Send</string>
-    <string name="notification">Notifications</string>
-    <string name="notification_on">On</string>
+    <string name="notification_on">Notifications On</string>
     <string name="notification_off">Off</string>
     <string name="wifi_dialog_title">Connection is lost</string>
     <string name="wifi_dialog_message">Do you want to open WIFI-Settings?</string>
     <string name="wifi_dialog_yes">Yes</string>
     <string name="wifi_dialog_no">No</string>
+    <string name="clear_screen">Clear screen</string>
+    <string name="menu">Menu</string>
 </resources>
