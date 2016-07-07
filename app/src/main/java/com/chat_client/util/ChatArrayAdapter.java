@@ -16,11 +16,9 @@ import java.util.List;
 public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
     protected TextView chatText;
     private List<ChatMessage> chatMessageList = new ArrayList<>();
-    private Context context;
 
     public ChatArrayAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
-        this.context = context;
     }
 
     @Override
@@ -42,8 +40,9 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ChatMessage chatMessage = getItem(position);
-        View row = convertView;
-        LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View row;
+        LayoutInflater inflater = (LayoutInflater) this.getContext()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (chatMessage.getLayout()) {
             row = inflater.inflate(R.layout.right_message_layout, parent, false);
         } else {
