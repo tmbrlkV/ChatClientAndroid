@@ -1,4 +1,4 @@
-package com.chat_client.database.security;
+package com.chat_client.database.controller.security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

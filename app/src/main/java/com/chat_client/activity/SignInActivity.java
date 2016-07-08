@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 import com.chat_client.R;
 import com.chat_client.service.DatabaseService;
-import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.alert.AlertDialogUtils;
 import com.chat_client.util.alert.WifiAlertUtil;
 

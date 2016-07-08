@@ -12,7 +12,7 @@ import android.support.annotation.Nullable;
 
 import com.chat_client.activity.ChatActivity;
 import com.chat_client.database.util.ConnectionConfig;
-import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
 import org.zeromq.ZMQ;
@@ -72,7 +72,7 @@ public class ChatService extends Service {
             @Override
             public void run() {
                 try (ZMQ.Context context = ZMQ.context(1)) {
-                    ConnectionConfig config = new ConnectionConfig(context);
+                    ConnectionConfig config = ConnectionConfig.getInstance(context, ChatService.this);
 
                     ZMQ.Socket sender = config.getSender();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);

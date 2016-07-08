@@ -16,10 +16,6 @@ public final class JsonObjectFactory {
         return mapper.writeValueAsString(jsonObject);
     }
 
-    public static <T> String getJsonString(T object) throws JsonProcessingException {
-        return mapper.writeValueAsString(object);
-    }
-
     public static <T> T getObjectFromJson(String json, Class<T> tClass) throws IOException {
         return mapper.readValue(json, tClass);
     }

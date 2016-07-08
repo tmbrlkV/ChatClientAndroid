@@ -13,9 +13,13 @@ import com.chat_client.database.controller.DatabaseController;
 import com.chat_client.database.controller.auth.AuthorisationController;
 import com.chat_client.database.controller.registration.SignUpController;
 import com.chat_client.database.util.ConnectionConfig;
-import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.util.entity.IntentExtraStrings;
 
 import org.zeromq.ZMQ;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class DatabaseService extends Service {
     private PendingIntent pendingIntent;
@@ -34,7 +38,7 @@ public class DatabaseService extends Service {
             @Override
             public void run() {
                 try (ZMQ.Context context = ZMQ.context(1)) {
-                    ConnectionConfig config = new ConnectionConfig(context);
+                    ConnectionConfig config = ConnectionConfig.getInstance(context, DatabaseService.this);
 
                     DatabaseController controller;
                     Bundle extras = intent.getExtras();
