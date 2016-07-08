@@ -9,27 +9,12 @@ import android.support.v7.app.AlertDialog;
 import com.chat_client.R;
 
 public class AlertDialogUtils {
-    private static AlertDialogUtils instance;
-
-    private static Context context;
+    private Context context;
     private AlertDialog.Builder builder;
 
-    private AlertDialogUtils(Context context) {
-        AlertDialogUtils.context = context;
+    public AlertDialogUtils(Context context) {
+        this.context = context;
         builder = new AlertDialog.Builder(context);
-    }
-
-    public static AlertDialogUtils getInstance(Context context) {
-        if (instance == null) {
-            instance = new AlertDialogUtils(context);
-        } else {
-            AlertDialogUtils.context = context;
-        }
-        return instance;
-    }
-
-    public Context getContext() {
-        return context;
     }
 
     public AlertDialog createWifiNotEnabledDialog() {

@@ -9,50 +9,25 @@ import android.support.v7.app.AlertDialog;
 
 public class WifiAlertUtil extends BroadcastReceiver {
     private static AlertDialog dialog;
-    private static WifiAlertUtil instance;
-    private static Context context;
 
     public WifiAlertUtil() {
     }
 
-    public static WifiAlertUtil getInstance(AlertDialogUtils dialogUtils) {
-        if (instance == null) {
-            instance = new WifiAlertUtil(dialogUtils);
-        } else {
-            context = dialogUtils.getContext();
-            dialog = dialogUtils.createWifiNotEnabledDialog();
-        }
-        return instance;
+    public WifiAlertUtil(AlertDialogUtils dialogUtils) {
+        WifiAlertUtil.dialog = dialogUtils.createWifiNotEnabledDialog();
     }
 
-    private WifiAlertUtil(AlertDialogUtils dialogUtils) {
-        context = dialogUtils.getContext();
-        dialog = dialogUtils.createWifiNotEnabledDialog();
-    }
-
-
-    public void alert() {
-        dismissAlertDialog();
-        wifiDisabledDialog();
-    }
-
-    public void dismiss() {
-        dismissAlertDialog();
-    }
-
-    private void dismissAlertDialog() {
-        if (dialog != null) {
-            dialog.dismiss();
-        }
-    }
-
-    private void wifiDisabledDialog() {
-        if (!isOnline() && dialog != null) {
+    public void alert(Context context) {
+        if (!isOnline(context)) {
             dialog.show();
         }
     }
 
-    private boolean isOnline() {
+    public void dismiss() {
+        dialog.dismiss();
+    }
+
+    private boolean isOnline(Context context) {
         ConnectivityManager cm =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
@@ -65,10 +40,12 @@ public class WifiAlertUtil extends BroadcastReceiver {
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         boolean isOnline = netInfo != null && netInfo.isConnectedOrConnecting();
-        if (isOnline) {
-            dismiss();
-        } else {
-            alert();
+        if (dialog != null) {
+            if (isOnline) {
+                dismiss();
+            } else {
+                alert(context);
+            }
         }
     }
 }

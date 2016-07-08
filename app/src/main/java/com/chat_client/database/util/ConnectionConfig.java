@@ -20,7 +20,7 @@ public class ConnectionConfig implements Serializable {
     private final Properties properties;
     private static ConnectionConfig instance;
 
-    private abstract static class ConnectionProperties {
+    private final static class ConnectionProperties {
         private static Context androidContext;
 
         private ConnectionProperties() {

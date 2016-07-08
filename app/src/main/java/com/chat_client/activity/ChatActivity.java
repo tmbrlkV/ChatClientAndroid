@@ -16,6 +16,8 @@ import android.widget.ListView;
 
 import com.chat_client.R;
 import com.chat_client.service.ChatService;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.ChatArrayAdapter;
 import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.StringCleaner;
@@ -40,6 +42,7 @@ public class ChatActivity extends AppCompatActivity {
     private static boolean isRun;
     private static boolean turnNotification = true;
     private ChatArrayAdapter adapter;
+    private WifiAlertUtil wifiAlertUtil;
 
     private void nullUserProtection() {
         String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
@@ -55,6 +58,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wifiAlertUtil = new WifiAlertUtil(new AlertDialogUtils(this));
         nullUserProtection();
         setContentView(R.layout.chat_main);
         ButterKnife.bind(this);
@@ -110,6 +114,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        wifiAlertUtil.alert(this);
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, false);
@@ -119,6 +124,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        wifiAlertUtil.dismiss();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, true);
         intent.putExtra(IntentExtraStrings.NOTIFICATIONS, turnNotification);

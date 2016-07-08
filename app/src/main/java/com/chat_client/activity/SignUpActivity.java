@@ -11,6 +11,8 @@ import android.widget.Toast;
 
 import com.chat_client.R;
 import com.chat_client.service.DatabaseService;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.IntentExtraStrings;
 
 import butterknife.BindView;
@@ -27,10 +29,12 @@ public class SignUpActivity extends Activity {
 
     @BindView(R.id.signUpPageButton)
     protected Button signUpButton;
+    private WifiAlertUtil wifiAlertUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wifiAlertUtil = new WifiAlertUtil(new AlertDialogUtils(this));
         setContentView(R.layout.sing_up_main);
         ButterKnife.bind(this);
     }
@@ -38,11 +42,13 @@ public class SignUpActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        wifiAlertUtil.alert(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        wifiAlertUtil.dismiss();
     }
 
     @OnClick(R.id.signUpPageButton)

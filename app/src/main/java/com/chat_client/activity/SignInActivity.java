@@ -35,7 +35,7 @@ public class SignInActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        wifiAlertUtil = WifiAlertUtil.getInstance(AlertDialogUtils.getInstance(this));
+        wifiAlertUtil = new WifiAlertUtil(new AlertDialogUtils(this));
         setContentView(R.layout.sign_in_main);
         ButterKnife.bind(this);
     }
@@ -43,7 +43,7 @@ public class SignInActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        wifiAlertUtil.alert();
+        wifiAlertUtil.alert(this);
     }
 
     @Override
