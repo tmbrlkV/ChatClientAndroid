@@ -29,7 +29,7 @@ public class ConnectionConfig implements Serializable {
         @TargetApi(Build.VERSION_CODES.KITKAT)
         private static Properties getProperties() {
             Properties properties = new Properties();
-            try (InputStream open = androidContext.getAssets().open("server.properties")) {
+            try (InputStream open = androidContext.getAssets().open("home-server.properties")) {
                 properties.load(open);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -78,6 +78,7 @@ public class ConnectionConfig implements Serializable {
 
     private void databaseRequesterInit(ZMQ.Context context) {
         databaseRequester = context.socket(ZMQ.REQ);
+        System.out.println(properties.getProperty("database_service_requester"));
         databaseRequester.connect(properties.getProperty("database_service_requester"));
     }
 

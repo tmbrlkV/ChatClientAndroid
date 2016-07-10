@@ -17,12 +17,9 @@ import com.chat_client.util.entity.IntentExtraStrings;
 
 import org.zeromq.ZMQ;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-
 public class DatabaseService extends Service {
     private PendingIntent pendingIntent;
+    private ZMQ.Context context = ZMQ.context(1);
 
     @Nullable
     @Override
@@ -37,9 +34,8 @@ public class DatabaseService extends Service {
             @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try (ZMQ.Context context = ZMQ.context(1)) {
+                try {
                     ConnectionConfig config = ConnectionConfig.getInstance(context, DatabaseService.this);
-
                     DatabaseController controller;
                     Bundle extras = intent.getExtras();
                     // TODO: 7/1/16 to strategy pattern
@@ -56,8 +52,6 @@ public class DatabaseService extends Service {
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     String password = intent.getStringExtra(IntentExtraStrings.PASSWORD);
                     boolean authorization = controller.execute(login, password);
-
-
                     intent.putExtra(IntentExtraStrings.VALID, authorization);
                     pendingIntent.send(DatabaseService.this, 0, intent);
                 } catch (Exception e) {
@@ -65,6 +59,7 @@ public class DatabaseService extends Service {
                 }
             }
         }).start();
+        stopSelf();
         return super.onStartCommand(intent, flags, startId);
     }
 

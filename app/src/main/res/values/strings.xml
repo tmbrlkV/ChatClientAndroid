@@ -3,10 +3,10 @@
     <string name="sign_in">Sign in</string>
     <string name="sign_up">Sign up</string>
     <string name="enter_a_login">Enter a login</string>
-    <string name="password">Password</string>
+    <string name="enter_a_password">Enter a password</string>
     <string name="confirm_sign_in">Confirm</string>
     <string name="back">Back</string>
-    <string name="repeat_password">Repeat password</string>
+    <string name="repeat_a_password">Repeat a password</string>
     <string name="send">Send</string>
     <string name="notification_on">Notifications On</string>
     <string name="notification_off">Off</string>

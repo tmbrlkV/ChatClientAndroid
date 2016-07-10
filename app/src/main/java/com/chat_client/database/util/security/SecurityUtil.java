@@ -1,9 +1,9 @@
-package com.chat_client.database.controller.security;
+package com.chat_client.database.util.security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class SecurityController {
+public class SecurityUtil {
     public static String hash(String string) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA");

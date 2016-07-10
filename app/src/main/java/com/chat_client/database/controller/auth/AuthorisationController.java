@@ -1,7 +1,7 @@
 package com.chat_client.database.controller.auth;
 
 import com.chat_client.database.controller.DatabaseController;
-import com.chat_client.database.controller.security.SecurityController;
+import com.chat_client.database.util.security.SecurityUtil;
 import com.chat_client.util.entity.User;
 import com.chat_client.util.json.JsonObjectFactory;
 
@@ -17,7 +17,7 @@ public class AuthorisationController implements DatabaseController {
 
     @Override
     public boolean execute(String login, String password) throws Exception {
-        User user = new User(login, SecurityController.hash(password));
+        User user = new User(login, SecurityUtil.hash(password));
         String jsonString = JsonObjectFactory.getJsonString(AUTHORIZE_USER, user);
         databaseRequester.send(jsonString);
 

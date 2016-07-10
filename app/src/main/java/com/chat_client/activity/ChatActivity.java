@@ -47,7 +47,7 @@ public class ChatActivity extends AppCompatActivity {
     private void nullUserProtection() {
         String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         if (login == null) {
-            Intent intent = new Intent(this, SignInActivity.class);
+            Intent intent = new Intent(this, SignInFragment.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();

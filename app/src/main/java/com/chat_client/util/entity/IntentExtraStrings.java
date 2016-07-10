@@ -1,6 +1,7 @@
 package com.chat_client.util.entity;
 
 public class IntentExtraStrings {
+
     private IntentExtraStrings() {}
 
     public static final String PASSWORD = "password";
