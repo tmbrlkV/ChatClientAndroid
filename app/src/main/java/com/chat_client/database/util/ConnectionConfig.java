@@ -29,7 +29,7 @@ public class ConnectionConfig implements Serializable {
         @TargetApi(Build.VERSION_CODES.KITKAT)
         private static Properties getProperties() {
             Properties properties = new Properties();
-            try (InputStream open = androidContext.getAssets().open("home-server.properties")) {
+            try (InputStream open = androidContext.getAssets().open("server.properties")) {
                 properties.load(open);
             } catch (IOException e) {
                 e.printStackTrace();

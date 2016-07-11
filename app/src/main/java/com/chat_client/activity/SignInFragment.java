@@ -22,9 +22,9 @@ import butterknife.OnClick;
 
 public class SignInFragment extends Fragment {
     @BindView(R.id.loginText)
-    protected EditText passwordEditText;
-    @BindView(R.id.passwordText)
     protected EditText loginEditText;
+    @BindView(R.id.passwordText)
+    protected EditText passwordEditText;
 
     @Nullable
     @Override
