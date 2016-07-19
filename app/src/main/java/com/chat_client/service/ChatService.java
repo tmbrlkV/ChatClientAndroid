@@ -11,11 +11,14 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import com.chat_client.activity.ChatActivity;
-import com.chat_client.database.util.ConnectionConfig;
+import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
-import org.zeromq.ZMQ;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 public class ChatService extends Service {
     public static final String BROADCAST_ACTION = "com.chat_client.activity";
@@ -71,17 +74,23 @@ public class ChatService extends Service {
             @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try (ZMQ.Context context = ZMQ.context(1)) {
-                    ConnectionConfig config = ConnectionConfig.getInstance(context, ChatService.this);
+                try {
 
-                    ZMQ.Socket sender = config.getSender();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     messageAppender.append(login).append(" has joined");
-                    sender.send(messageAppender.toString());
+                    try {
+                        SocketConnection keeper = (SocketConnection) getApplicationContext();
+                        Socket activeSocket = keeper.getActiveSocket();
+                        OutputStream outputStream = activeSocket.getOutputStream();
+                        outputStream.write(messageAppender.toString().getBytes());
+                        outputStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     messageAppender.setLength(0);
 
-                    send = startSenderThread(login, config);
-                    Thread receive = startReceiverThread(config);
+                    send = startSenderThread(login);
+                    Thread receive = startReceiverThread();
 
                     send.join();
                     receive.join();
@@ -95,15 +104,23 @@ public class ChatService extends Service {
     }
 
 
-    private Thread startSenderThread(final String login, final ConnectionConfig config) {
+    private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
             @Override
             public void run() {
-                ZMQ.Socket sender = config.getSender();
+                SocketConnection keeper = (SocketConnection) getApplicationContext();
+                Socket activeSocket = keeper.getActiveSocket();
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
                         messageAppender.append(login).append(": ").append(message);
-                        sender.send(messageAppender.toString());
+                        try {
+                            OutputStream outputStream = activeSocket.getOutputStream();
+                            outputStream.write(messageAppender.toString().getBytes());
+                            outputStream.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                         messageAppender.setLength(0);
                         message = null;
                     }
@@ -114,27 +131,36 @@ public class ChatService extends Service {
         return send;
     }
 
-    private Thread startReceiverThread(final ConnectionConfig config) {
+    private Thread startReceiverThread() {
         Thread receiver = new Thread(new Runnable() {
             private StringBuffer receiveMessageBuffer = new StringBuffer();
 
             @Override
             public void run() {
-                ZMQ.Socket receiver = config.getReceiver();
-                ZMQ.Poller poller = config.getPoller();
+                SocketConnection keeper = (SocketConnection) getApplicationContext();
+                Socket activeSocket = keeper.getActiveSocket();
+                System.out.println(activeSocket);
                 while (!Thread.currentThread().isInterrupted()) {
                     if (stopReceiver()) break;
-                    int events = poller.poll();
-                    if (events > 0) {
-                        String message = receiver.recvStr(0);
-                        receiveMessageBuffer.append(message);
-                        Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
-                                receiveMessageBuffer.toString());
-                        sendBroadcast(intent);
-                        notify(message);
+                    try {
+                        if (!activeSocket.isClosed()) {
+                            InputStream inputStream = activeSocket.getInputStream();
+                            byte[] message = new byte[300];
+                            int read = inputStream.read(message);
+                            if (read > 0) {
+                                String asStringMessage = new String(message);
+                                receiveMessageBuffer.append(asStringMessage);
+                                Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
+                                intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                                        receiveMessageBuffer.toString());
+                                sendBroadcast(intent);
+                                notify(asStringMessage);
 
-                        receiveMessageBuffer.setLength(0);
+                                receiveMessageBuffer.setLength(0);
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             }

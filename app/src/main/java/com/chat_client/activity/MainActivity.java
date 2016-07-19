@@ -57,10 +57,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Bundle extras = data.getExtras();
-        if (extras.containsKey(IntentExtraStrings.AUTHORIZE)) {
+        String command = (String) extras.get(IntentExtraStrings.DATABASE_COMMAND);
+        assert command != null;
+        if (command.equals(IntentExtraStrings.AUTHORIZE)) {
             authorization(data);
         }
-        if (extras.containsKey(IntentExtraStrings.REGISTER)){
+        if (command.equals(IntentExtraStrings.REGISTER)){
             registration(data);
         }
     }

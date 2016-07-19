@@ -5,21 +5,18 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import com.chat_client.database.controller.DatabaseController;
-import com.chat_client.database.controller.auth.AuthorisationController;
-import com.chat_client.database.controller.registration.SignUpController;
-import com.chat_client.database.util.ConnectionConfig;
+import com.chat_client.database.controller.auth.DatabaseController;
+import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
+import com.chat_client.util.entity.User;
 
-import org.zeromq.ZMQ;
+import java.net.Socket;
 
 public class DatabaseService extends Service {
     private PendingIntent pendingIntent;
-    private ZMQ.Context context = ZMQ.context(1);
 
     @Nullable
     @Override
@@ -35,23 +32,16 @@ public class DatabaseService extends Service {
             @Override
             public void run() {
                 try {
-                    ConnectionConfig config = ConnectionConfig.getInstance(context, DatabaseService.this);
-                    DatabaseController controller;
-                    Bundle extras = intent.getExtras();
-                    // TODO: 7/1/16 to strategy pattern
-                    if (extras.containsKey(IntentExtraStrings.AUTHORIZE)) {
-                        controller = new AuthorisationController(config.getDatabaseRequester());
-                        pendingIntent = intent.getParcelableExtra(IntentExtraStrings.AUTHORIZE);
-                    } else if (extras.containsKey(IntentExtraStrings.REGISTER)) {
-                        controller = new SignUpController(config.getDatabaseRequester());
-                        pendingIntent = intent.getParcelableExtra(IntentExtraStrings.REGISTER);
-                    } else {
-                        return;
-                    }
+                    SocketConnection keeper = (SocketConnection) getApplicationContext();
+                    Socket activeSocket = keeper.getActiveSocket();
+                    DatabaseController controller = new DatabaseController(activeSocket);
+                    pendingIntent = intent.getParcelableExtra(IntentExtraStrings.DATABASE_ACTION);
 
+                    String command = intent.getStringExtra(IntentExtraStrings.DATABASE_COMMAND);
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     String password = intent.getStringExtra(IntentExtraStrings.PASSWORD);
-                    boolean authorization = controller.execute(login, password);
+
+                    boolean authorization = controller.execute(new User(login, password), command);
                     intent.putExtra(IntentExtraStrings.VALID, authorization);
                     pendingIntent.send(DatabaseService.this, 0, intent);
                 } catch (Exception e) {

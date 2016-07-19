@@ -66,7 +66,8 @@ public class SignUpFragment extends Fragment {
         intent.putExtra(IntentExtraStrings.LOGIN, loginText.getText().toString().trim());
         intent.putExtra(IntentExtraStrings.PASSWORD, passwordText.getText().toString().trim());
         PendingIntent registerIntent = getActivity().createPendingResult(0, new Intent(), 0);
-        intent.putExtra(IntentExtraStrings.REGISTER, registerIntent);
+        intent.putExtra(IntentExtraStrings.DATABASE_ACTION, registerIntent);
+        intent.putExtra(IntentExtraStrings.DATABASE_COMMAND, IntentExtraStrings.REGISTER);
         return intent;
     }
 }

@@ -9,6 +9,7 @@
 
 
     <application
+        android:name=".database.util.SocketConnection"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -24,9 +25,7 @@
         <service
             android:name=".service.DatabaseService"
             android:stopWithTask="true" />
-        <service
-            android:name=".service.ChatService"
-            android:process=":chatNotificationService" />
+        <service android:name=".service.ChatService" />
 
         <activity
             android:name=".activity.ChatActivity"

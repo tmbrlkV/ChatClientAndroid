@@ -15,13 +15,14 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.chat_client.R;
+import com.chat_client.database.util.SocketConnection;
 import com.chat_client.service.ChatService;
+import com.chat_client.util.StringCleaner;
 import com.chat_client.util.alert.AlertDialogUtils;
 import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.ChatArrayAdapter;
-import com.chat_client.util.entity.IntentExtraStrings;
-import com.chat_client.util.StringCleaner;
 import com.chat_client.util.entity.ChatMessage;
+import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
 import butterknife.BindView;
@@ -47,7 +48,7 @@ public class ChatActivity extends AppCompatActivity {
     private void nullUserProtection() {
         String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         if (login == null) {
-            Intent intent = new Intent(this, SignInFragment.class);
+            Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
@@ -144,6 +145,7 @@ public class ChatActivity extends AppCompatActivity {
         stopService(new Intent(this, ChatService.class));
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         unregisterReceiver(broadcastReceiver);
+        ((SocketConnection) getApplicationContext()).close();
     }
 
     public void turnOnMenuClick(MenuItem item) {

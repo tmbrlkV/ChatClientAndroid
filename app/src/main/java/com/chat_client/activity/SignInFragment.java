@@ -64,7 +64,8 @@ public class SignInFragment extends Fragment {
         intent.putExtra(IntentExtraStrings.LOGIN, loginEditText.getText().toString().trim());
         intent.putExtra(IntentExtraStrings.PASSWORD, passwordEditText.getText().toString().trim());
         PendingIntent authorizeIntent = getActivity().createPendingResult(0, new Intent(), 0);
-        intent.putExtra(IntentExtraStrings.AUTHORIZE, authorizeIntent);
+        intent.putExtra(IntentExtraStrings.DATABASE_ACTION, authorizeIntent);
+        intent.putExtra(IntentExtraStrings.DATABASE_COMMAND, IntentExtraStrings.AUTHORIZE);
         return intent;
     }
 }
