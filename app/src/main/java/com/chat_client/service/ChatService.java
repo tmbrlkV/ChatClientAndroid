@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import com.chat_client.activity.ChatActivity;
+import com.chat_client.activity.MainActivity;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
@@ -75,18 +76,11 @@ public class ChatService extends Service {
             @Override
             public void run() {
                 try {
-
+                    SocketConnection keeper = (SocketConnection) getApplicationContext();
+                    Socket activeSocket = keeper.getActiveSocket();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     messageAppender.append(login).append(" has joined");
-                    try {
-                        SocketConnection keeper = (SocketConnection) getApplicationContext();
-                        Socket activeSocket = keeper.getActiveSocket();
-                        OutputStream outputStream = activeSocket.getOutputStream();
-                        outputStream.write(messageAppender.toString().getBytes());
-                        outputStream.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    writeTo(activeSocket);
                     messageAppender.setLength(0);
 
                     send = startSenderThread(login);
@@ -103,24 +97,27 @@ public class ChatService extends Service {
         return START_NOT_STICKY;
     }
 
+    private void writeTo(Socket activeSocket) {
+        try {
+            OutputStream outputStream = activeSocket.getOutputStream();
+            outputStream.write(messageAppender.toString().getBytes());
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
-                Socket activeSocket = keeper.getActiveSocket();
+                final Socket activeSocket = keeper.getActiveSocket();
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
                         messageAppender.append(login).append(": ").append(message);
-                        try {
-                            OutputStream outputStream = activeSocket.getOutputStream();
-                            outputStream.write(messageAppender.toString().getBytes());
-                            outputStream.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
+                        writeTo(activeSocket);
                         messageAppender.setLength(0);
                         message = null;
                     }
@@ -144,24 +141,29 @@ public class ChatService extends Service {
                     if (stopReceiver()) break;
                     try {
                         if (!activeSocket.isClosed()) {
-                            InputStream inputStream = activeSocket.getInputStream();
-                            byte[] message = new byte[300];
-                            int read = inputStream.read(message);
-                            if (read > 0) {
-                                String asStringMessage = new String(message);
-                                receiveMessageBuffer.append(asStringMessage);
-                                Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                                intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
-                                        receiveMessageBuffer.toString());
-                                sendBroadcast(intent);
-                                notify(asStringMessage);
-
-                                receiveMessageBuffer.setLength(0);
-                            }
+                            readFrom(activeSocket);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.out.println(e.getMessage());
+                        turnNotification = false;
                     }
+                }
+            }
+
+            private void readFrom(Socket activeSocket) throws IOException {
+                InputStream inputStream = activeSocket.getInputStream();
+                byte[] message = new byte[300];
+                int readBytes = inputStream.read(message);
+                if (readBytes > 0) {
+                    String asStringMessage = new String(message);
+                    receiveMessageBuffer.append(asStringMessage);
+                    Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
+                    intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                            receiveMessageBuffer.toString());
+                    sendBroadcast(intent);
+                    notify(asStringMessage);
+
+                    receiveMessageBuffer.setLength(0);
                 }
             }
 
