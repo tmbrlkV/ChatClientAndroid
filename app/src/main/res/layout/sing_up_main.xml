@@ -1,68 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/loginSignUpEditText"
         android:hint="@string/enter_a_login"
-        android:layout_marginTop="45dp"
-        android:layout_below="@+id/signUpTextView"
-        android:layout_alignLeft="@+id/passwordSignUpEditText"
-        android:layout_alignStart="@+id/passwordSignUpEditText" />
+        android:ems="10"
+        android:id="@+id/createLoginText"
+        android:layout_gravity="center_horizontal" />
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:hint="@string/password"
-        android:id="@+id/passwordSignUpEditText"
-        android:layout_below="@+id/loginSignUpEditText"
-        android:layout_centerHorizontal="true" />
+        android:hint="@string/enter_a_password"
+        android:id="@+id/createPasswordText"
+        android:layout_gravity="center_horizontal" />
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/passwordSignUpEditTextRepeat"
-        android:hint="@string/repeat_password"
-        android:layout_below="@+id/passwordSignUpEditText"
-        android:layout_centerHorizontal="true" />
+        android:hint="@string/repeat_a_password"
+        android:id="@+id/createPasswordRepeatText"
+        android:layout_gravity="center_horizontal" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/sign_up"
-        android:id="@+id/signUpPageButton"
-        android:layout_below="@+id/passwordSignUpEditTextRepeat"
-        android:layout_alignLeft="@+id/passwordSignUpEditTextRepeat"
-        android:layout_alignStart="@+id/passwordSignUpEditTextRepeat"
-        android:layout_alignRight="@+id/passwordSignUpEditTextRepeat"
-        android:layout_alignEnd="@+id/passwordSignUpEditTextRepeat" />
+        android:id="@+id/signUpButton"
+        android:layout_gravity="center_horizontal" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/back"
-        android:id="@+id/backToSignInButton"
-        android:layout_below="@+id/signUpPageButton"
-        android:layout_alignRight="@+id/signUpPageButton"
-        android:layout_alignEnd="@+id/signUpPageButton"
-        android:layout_alignLeft="@+id/signUpPageButton"
-        android:layout_alignStart="@+id/signUpPageButton" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/sign_up"
-        android:paddingTop="30sp"
-        android:id="@+id/signUpTextView"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-</RelativeLayout>
+</LinearLayout>

@@ -8,24 +8,21 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.text.method.BaseKeyListener;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.chat_client.R;
+import com.chat_client.database.util.SocketConnection;
 import com.chat_client.service.ChatService;
-import com.chat_client.util.ChatArrayAdapter;
-import com.chat_client.util.IntentExtraStrings;
-import com.chat_client.util.StringCleaner;
+import com.chat_client.util.message.StringCleaner;
+import com.chat_client.util.alert.AlertDialogUtils;
+import com.chat_client.util.alert.WifiAlertUtil;
+import com.chat_client.util.entity.ChatArrayAdapter;
 import com.chat_client.util.entity.ChatMessage;
+import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
 import butterknife.BindView;
@@ -44,14 +41,14 @@ public class ChatActivity extends AppCompatActivity {
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
     private static boolean isRun;
-    private static boolean turnNotification = true;
+    private static boolean turnNotification;
     private ChatArrayAdapter adapter;
-
+    private WifiAlertUtil wifiAlertUtil;
 
     private void nullUserProtection() {
         String login = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         if (login == null) {
-            Intent intent = new Intent(this, SignInActivity.class);
+            Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
@@ -62,12 +59,14 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wifiAlertUtil = new WifiAlertUtil(new AlertDialogUtils(this));
         nullUserProtection();
         setContentView(R.layout.chat_main);
         ButterKnife.bind(this);
 
         adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
         boardListView.setAdapter(adapter);
+        turnNotification = true;
 
         final String currentLogin = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         broadcastReceiver = new BroadcastReceiver() {
@@ -117,6 +116,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        wifiAlertUtil.alert(this);
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, false);
@@ -126,6 +126,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        wifiAlertUtil.dismiss();
         Intent intent = new Intent(ChatService.BROADCAST_ACTION);
         intent.putExtra(IntentExtraStrings.PAUSE, true);
         intent.putExtra(IntentExtraStrings.NOTIFICATIONS, turnNotification);
@@ -136,6 +137,8 @@ public class ChatActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         isRun = false;
+        turnNotification = false;
+        stopService(new Intent(this, ChatService.class));
     }
 
     @Override
@@ -145,19 +148,21 @@ public class ChatActivity extends AppCompatActivity {
         stopService(new Intent(this, ChatService.class));
         NotificationUtils.getInstance(getApplicationContext()).cancelAll();
         unregisterReceiver(broadcastReceiver);
+        ((SocketConnection) getApplicationContext()).close();
     }
 
     public void turnOnMenuClick(MenuItem item) {
         if (!item.isChecked()) {
             turnNotification = true;
             item.setChecked(true);
+        } else {
+            turnNotification = false;
+            item.setChecked(false);
         }
     }
 
-    public void turnOffMenuClick(MenuItem item) {
-        if (!item.isChecked()) {
-            turnNotification = false;
-            item.setChecked(true);
-        }
+    public void clearScreen(MenuItem item) {
+        adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
+        boardListView.setAdapter(adapter);
     }
 }

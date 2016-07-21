@@ -3,12 +3,17 @@
     <string name="sign_in">Sign in</string>
     <string name="sign_up">Sign up</string>
     <string name="enter_a_login">Enter a login</string>
-    <string name="password">Password</string>
+    <string name="enter_a_password">Enter a password</string>
     <string name="confirm_sign_in">Confirm</string>
     <string name="back">Back</string>
-    <string name="repeat_password">Repeat password</string>
+    <string name="repeat_a_password">Repeat a password</string>
     <string name="send">Send</string>
-    <string name="notification">Notifications</string>
-    <string name="notification_on">On</string>
+    <string name="notification_on">Notifications On</string>
     <string name="notification_off">Off</string>
+    <string name="wifi_dialog_title">Connection is lost</string>
+    <string name="wifi_dialog_message">Do you want to open Internet Settings?</string>
+    <string name="wifi_dialog_yes">Yes</string>
+    <string name="wifi_dialog_no">No</string>
+    <string name="clear_screen">Clear screen</string>
+    <string name="menu">Menu</string>
 </resources>

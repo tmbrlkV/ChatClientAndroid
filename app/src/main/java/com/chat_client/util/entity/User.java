@@ -10,19 +10,9 @@ public class User implements Serializable {
 
     public User() {}
 
-    public User(int id, String login, String password) {
-        this.id = id;
-        this.login = login;
-        this.password = password;
-    }
-
     public User(String login, String password) {
         this.login = login;
         this.password = password;
-    }
-
-    public User(String login) {
-        this.login = login;
     }
 
     public boolean validation() {

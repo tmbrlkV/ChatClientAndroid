@@ -1,4 +1,4 @@
-package com.chat_client.util;
+package com.chat_client.util.entity;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -55,7 +55,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
         chatText.setText(chatMessage.getMessage());
 
         timeView = (TextView) row.findViewById(R.id.message_time);
-        timeView.setText(DateFormat.getTimeInstance().format(new Date()));
+        timeView.setText(DateFormat.getTimeInstance().format(chatMessage.getTime()));
 
         return row;
     }

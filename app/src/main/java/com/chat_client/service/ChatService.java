@@ -11,23 +11,24 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import com.chat_client.activity.ChatActivity;
-import com.chat_client.database.util.ConnectionConfig;
-import com.chat_client.util.IntentExtraStrings;
+import com.chat_client.activity.MainActivity;
+import com.chat_client.database.util.SocketConnection;
+import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
-import org.zeromq.ZMQ;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 public class ChatService extends Service {
     public static final String BROADCAST_ACTION = "com.chat_client.activity";
     private BroadcastReceiver broadcastServiceReceiver;
     private NotificationUtils notificationUtils;
     private String message;
-    private StringBuffer messageAppender = new StringBuffer(0);
 
-    private static Thread send;
-    private static boolean isRun = true;
-    private static boolean isPause;
-    private static boolean turnNotification = true;
+    private boolean isPause;
+    private boolean turnNotification;
 
     @Nullable
     @Override
@@ -39,7 +40,8 @@ public class ChatService extends Service {
     public void onCreate() {
         super.onCreate();
         notificationUtils = NotificationUtils.getInstance(getApplicationContext());
-        stopSenderThreadIfNotInterrupted();
+        notificationUtils.cancelAll();
+        isPause = false;
         broadcastServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -50,13 +52,6 @@ public class ChatService extends Service {
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastServiceReceiver, intentFilter);
-    }
-
-    private void stopSenderThreadIfNotInterrupted() {
-        if (send != null && !send.isInterrupted()) {
-            isRun = false;
-            send.interrupt();
-        }
     }
 
     @Override
@@ -71,21 +66,13 @@ public class ChatService extends Service {
             @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                try (ZMQ.Context context = ZMQ.context(1)) {
-                    ConnectionConfig config = new ConnectionConfig(context);
-
-                    ZMQ.Socket sender = config.getSender();
+                try {
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
-                    messageAppender.append(login).append(" has joined");
-                    sender.send(messageAppender.toString());
-                    messageAppender.setLength(0);
-
-                    send = startSenderThread(login, config);
-                    Thread receive = startReceiverThread(config);
+                    Thread send = startSenderThread(login);
+                    Thread receive = startReceiverThread();
 
                     send.join();
                     receive.join();
-
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -95,18 +82,38 @@ public class ChatService extends Service {
     }
 
 
-    private Thread startSenderThread(final String login, final ConnectionConfig config) {
+    private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
+            private OutputStream outputStream;
+            private StringBuffer messageAppender = new StringBuffer(0);
+
             @Override
             public void run() {
-                ZMQ.Socket sender = config.getSender();
+                SocketConnection keeper = (SocketConnection) getApplicationContext();
+                final Socket activeSocket = keeper.getActiveSocket();
+                messageAppender.append(login).append(" has joined");
+                writeTo(activeSocket);
+                messageAppender.setLength(0);
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
                         messageAppender.append(login).append(": ").append(message);
-                        sender.send(messageAppender.toString());
+                        writeTo(activeSocket);
                         messageAppender.setLength(0);
                         message = null;
                     }
+                }
+            }
+
+            private void writeTo(Socket activeSocket) {
+                try {
+                    if (outputStream == null) {
+                        outputStream = activeSocket.getOutputStream();
+                    }
+                    outputStream.write(messageAppender.toString().getBytes());
+                    outputStream.flush();
+                } catch (IOException e) {
+                    System.err.println(e.getMessage() + " sender thread");
+                    Thread.currentThread().interrupt();
                 }
             }
         });
@@ -114,39 +121,53 @@ public class ChatService extends Service {
         return send;
     }
 
-    private Thread startReceiverThread(final ConnectionConfig config) {
+    private Thread startReceiverThread() {
         Thread receiver = new Thread(new Runnable() {
+            private InputStream inputStream;
             private StringBuffer receiveMessageBuffer = new StringBuffer();
 
             @Override
             public void run() {
-                ZMQ.Socket receiver = config.getReceiver();
-                ZMQ.Poller poller = config.getPoller();
+                SocketConnection keeper = (SocketConnection) getApplicationContext();
+                Socket activeSocket = keeper.getActiveSocket();
                 while (!Thread.currentThread().isInterrupted()) {
-                    if (stopReceiver()) break;
-                    int events = poller.poll();
-                    if (events > 0) {
-                        String message = receiver.recvStr(0);
-                        receiveMessageBuffer.append(message);
+                    readFrom(activeSocket);
+                }
+            }
+
+            private void readFrom(Socket activeSocket) {
+                try {
+                    if (inputStream == null) {
+                        inputStream = activeSocket.getInputStream();
+                    }
+                    byte[] message = new byte[300];
+                    int readBytes = inputStream.read(message);
+                    if (readBytes > 0) {
+                        String asStringMessage = new String(message);
+                        receiveMessageBuffer.append(asStringMessage);
                         Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
                         intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
                                 receiveMessageBuffer.toString());
                         sendBroadcast(intent);
-                        notify(message);
-
+                        notify(asStringMessage);
                         receiveMessageBuffer.setLength(0);
+                    } else if (readBytes == -1) {
+                        goBackToMainActivity();
+                        Thread.currentThread().interrupt();
                     }
+                } catch (IOException e) {
+                    System.err.println(e.getMessage() + " receiver thread");
+                    Thread.currentThread().interrupt();
                 }
             }
 
-            private boolean stopReceiver() {
-                if (!isRun) {
-                    isRun = true;
-                    notificationUtils.cancelAll();
-                    return true;
-                }
-                return false;
+            private void goBackToMainActivity() {
+                Intent intent = new Intent(ChatService.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                stopService(new Intent(ChatService.this, ChatService.class));
             }
+
 
             private void notify(String message) {
                 if (isPause && turnNotification) {

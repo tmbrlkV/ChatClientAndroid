@@ -1,6 +1,6 @@
 package com.chat_client;
 
-import com.chat_client.util.StringCleaner;
+import com.chat_client.util.message.StringCleaner;
 
 import org.junit.Test;
 
