@@ -1,4 +1,4 @@
-package com.chat_client.database.controller.auth;
+package com.chat_client.database.controller;
 
 import android.annotation.TargetApi;
 import android.os.Build;

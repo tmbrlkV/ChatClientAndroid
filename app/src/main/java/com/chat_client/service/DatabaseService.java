@@ -8,7 +8,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import com.chat_client.database.controller.auth.DatabaseController;
+import com.chat_client.database.controller.DatabaseController;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.entity.User;

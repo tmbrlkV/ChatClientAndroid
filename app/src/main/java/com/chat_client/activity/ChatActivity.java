@@ -17,7 +17,7 @@ import android.widget.ListView;
 import com.chat_client.R;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.service.ChatService;
-import com.chat_client.util.StringCleaner;
+import com.chat_client.util.message.StringCleaner;
 import com.chat_client.util.alert.AlertDialogUtils;
 import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.ChatArrayAdapter;

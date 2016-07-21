@@ -1,8 +1,8 @@
-package com.chat_client.util;
+package com.chat_client.util.message;
 
 public class StringCleaner {
     public static String spaceTrim(String in) {
-        StringBuffer spaceSplitBuffer = new StringBuffer(in.length());
+        StringBuilder spaceSplitBuffer = new StringBuilder(in.length());
         String[] splitIn = in.split(" ");
         for (String s : splitIn) {
             if (!s.isEmpty()) {
@@ -14,7 +14,7 @@ public class StringCleaner {
     }
 
     public static String enterTrim(String in) {
-        StringBuffer enterSplitBuffer = new StringBuffer(in.length());
+        StringBuilder enterSplitBuffer = new StringBuilder(in.length());
         String[] splitIn = in.trim().split("\n");
         for (String s : splitIn) {
             if (!s.isEmpty()) {
