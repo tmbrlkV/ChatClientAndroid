@@ -41,7 +41,7 @@ public class ChatActivity extends AppCompatActivity {
     private BroadcastReceiver broadcastReceiver;
     public final static String BROADCAST_ACTION = "com.chat_client.service";
     private static boolean isRun;
-    private static boolean turnNotification = true;
+    private static boolean turnNotification;
     private ChatArrayAdapter adapter;
     private WifiAlertUtil wifiAlertUtil;
 
@@ -66,6 +66,7 @@ public class ChatActivity extends AppCompatActivity {
 
         adapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right_message_layout);
         boardListView.setAdapter(adapter);
+        turnNotification = true;
 
         final String currentLogin = getIntent().getStringExtra(IntentExtraStrings.LOGIN);
         broadcastReceiver = new BroadcastReceiver() {
@@ -136,6 +137,8 @@ public class ChatActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         isRun = false;
+        turnNotification = false;
+        stopService(new Intent(this, ChatService.class));
     }
 
     @Override

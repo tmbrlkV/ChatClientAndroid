@@ -44,7 +44,7 @@ public class SocketConnection extends Application {
     }
 
     public Socket getActiveSocket() {
-        if (socket == null) {
+        if (socket.isClosed()) {
             socket = socketInit();
         }
         return socket;
@@ -68,7 +68,6 @@ public class SocketConnection extends Application {
     public void close() {
         try {
             socket.close();
-            socket = null;
         } catch (IOException e) {
             e.printStackTrace();
         }

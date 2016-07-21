@@ -26,12 +26,9 @@ public class ChatService extends Service {
     private BroadcastReceiver broadcastServiceReceiver;
     private NotificationUtils notificationUtils;
     private String message;
-    private StringBuffer messageAppender = new StringBuffer(0);
 
-    private static Thread send;
-    private static boolean isRun = true;
-    private static boolean isPause;
-    private static boolean turnNotification = true;
+    private boolean isPause;
+    private boolean turnNotification;
 
     @Nullable
     @Override
@@ -43,7 +40,8 @@ public class ChatService extends Service {
     public void onCreate() {
         super.onCreate();
         notificationUtils = NotificationUtils.getInstance(getApplicationContext());
-        stopSenderThreadIfNotInterrupted();
+        notificationUtils.cancelAll();
+        isPause = false;
         broadcastServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -54,13 +52,6 @@ public class ChatService extends Service {
         };
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(broadcastServiceReceiver, intentFilter);
-    }
-
-    private void stopSenderThreadIfNotInterrupted() {
-        if (send != null && !send.isInterrupted()) {
-            isRun = false;
-            send.interrupt();
-        }
     }
 
     @Override
@@ -76,19 +67,12 @@ public class ChatService extends Service {
             @Override
             public void run() {
                 try {
-                    SocketConnection keeper = (SocketConnection) getApplicationContext();
-                    Socket activeSocket = keeper.getActiveSocket();
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
-                    messageAppender.append(login).append(" has joined");
-                    writeTo(activeSocket);
-                    messageAppender.setLength(0);
-
-                    send = startSenderThread(login);
+                    Thread send = startSenderThread(login);
                     Thread receive = startReceiverThread();
 
                     send.join();
                     receive.join();
-
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -97,23 +81,19 @@ public class ChatService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void writeTo(Socket activeSocket) {
-        try {
-            OutputStream outputStream = activeSocket.getOutputStream();
-            outputStream.write(messageAppender.toString().getBytes());
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
+            private OutputStream outputStream;
+            private StringBuffer messageAppender = new StringBuffer(0);
+
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
                 final Socket activeSocket = keeper.getActiveSocket();
+                messageAppender.append(login).append(" has joined");
+                writeTo(activeSocket);
+                messageAppender.setLength(0);
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
                         messageAppender.append(login).append(": ").append(message);
@@ -123,6 +103,19 @@ public class ChatService extends Service {
                     }
                 }
             }
+
+            private void writeTo(Socket activeSocket) {
+                try {
+                    if (outputStream == null) {
+                        outputStream = activeSocket.getOutputStream();
+                    }
+                    outputStream.write(messageAppender.toString().getBytes());
+                    outputStream.flush();
+                } catch (IOException e) {
+                    System.err.println(e.getMessage() + " sender thread");
+                    Thread.currentThread().interrupt();
+                }
+            }
         });
         send.start();
         return send;
@@ -130,51 +123,51 @@ public class ChatService extends Service {
 
     private Thread startReceiverThread() {
         Thread receiver = new Thread(new Runnable() {
+            private InputStream inputStream;
             private StringBuffer receiveMessageBuffer = new StringBuffer();
 
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
                 Socket activeSocket = keeper.getActiveSocket();
-                System.out.println(activeSocket);
                 while (!Thread.currentThread().isInterrupted()) {
-                    if (stopReceiver()) break;
-                    try {
-                        if (!activeSocket.isClosed()) {
-                            readFrom(activeSocket);
-                        }
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                        turnNotification = false;
+                    readFrom(activeSocket);
+                }
+            }
+
+            private void readFrom(Socket activeSocket) {
+                try {
+                    if (inputStream == null) {
+                        inputStream = activeSocket.getInputStream();
                     }
+                    byte[] message = new byte[300];
+                    int readBytes = inputStream.read(message);
+                    if (readBytes > 0) {
+                        String asStringMessage = new String(message);
+                        receiveMessageBuffer.append(asStringMessage);
+                        Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
+                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                                receiveMessageBuffer.toString());
+                        sendBroadcast(intent);
+                        notify(asStringMessage);
+                        receiveMessageBuffer.setLength(0);
+                    } else if (readBytes == -1) {
+                        goBackToMainActivity();
+                        Thread.currentThread().interrupt();
+                    }
+                } catch (IOException e) {
+                    System.err.println(e.getMessage() + " receiver thread");
+                    Thread.currentThread().interrupt();
                 }
             }
 
-            private void readFrom(Socket activeSocket) throws IOException {
-                InputStream inputStream = activeSocket.getInputStream();
-                byte[] message = new byte[300];
-                int readBytes = inputStream.read(message);
-                if (readBytes > 0) {
-                    String asStringMessage = new String(message);
-                    receiveMessageBuffer.append(asStringMessage);
-                    Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                    intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
-                            receiveMessageBuffer.toString());
-                    sendBroadcast(intent);
-                    notify(asStringMessage);
-
-                    receiveMessageBuffer.setLength(0);
-                }
+            private void goBackToMainActivity() {
+                Intent intent = new Intent(ChatService.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                stopService(new Intent(ChatService.this, ChatService.class));
             }
 
-            private boolean stopReceiver() {
-                if (!isRun) {
-                    isRun = true;
-                    notificationUtils.cancelAll();
-                    return true;
-                }
-                return false;
-            }
 
             private void notify(String message) {
                 if (isPause && turnNotification) {
