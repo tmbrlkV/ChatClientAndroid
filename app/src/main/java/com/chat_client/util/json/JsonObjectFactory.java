@@ -17,6 +17,10 @@ public final class JsonObjectFactory {
     }
 
     public static <T> T getObjectFromJson(String json, Class<T> tClass) throws IOException {
-        return mapper.readValue(json, tClass);
+        try {
+            return mapper.readValue(json, tClass);
+        } catch (IOException e) {
+            return null;
+        }
     }
 }

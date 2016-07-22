@@ -19,7 +19,7 @@ public class DatabaseController {
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public boolean execute(User user, String command) throws Exception {
+    public boolean execute(String command, User user) throws Exception {
         String hashPassword = SecurityUtil.hash(user.getPassword());
         user.setPassword(hashPassword);
         String jsonString = JsonObjectFactory.getJsonString(command, user);
@@ -31,12 +31,21 @@ public class DatabaseController {
         InputStream reader = databaseRequester.getInputStream();
 
         byte[] buffer = new byte[1024];
-        System.out.println(jsonString);
-        int read = reader.read(buffer);
-        if (read > 0) {
-            data.append(new String(buffer).trim());
-            user = JsonObjectFactory.getObjectFromJson(data.toString(), User.class);
+        boolean isValid = false;
+        while (!Thread.currentThread().isInterrupted()) {
+            int read = reader.read(buffer);
+            if (read > 0) {
+                String databaseReply = new String(buffer).trim();
+                data.append(databaseReply);
+                user = JsonObjectFactory.getObjectFromJson(data.toString(), User.class);
+                if (user != null) {
+                    isValid = user.validation();
+                    break;
+                }
+                data.setLength(0);
+            }
         }
-        return user.validation();
+        return isValid;
     }
+
 }
