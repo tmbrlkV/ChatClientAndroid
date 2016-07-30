@@ -41,6 +41,11 @@ public class SocketConnection extends Application {
             }
         });
         thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public Socket getActiveSocket() {
@@ -55,6 +60,7 @@ public class SocketConnection extends Application {
         Properties properties = ConnectionProperties
                 .getProperties(SocketConnection.this);
         String address = (String) properties.get("butler_service_address");
+        System.out.println(address + " KEK");
         int port = Integer.parseInt((String) properties.get("butler_service_port"));
         try {
             socket.connect(new InetSocketAddress(address, port));

@@ -31,7 +31,7 @@ public class DatabaseController {
         InputStream reader = databaseRequester.getInputStream();
 
         byte[] buffer = new byte[1024];
-        boolean isValid = false;
+            boolean isValid = false;
         while (!Thread.currentThread().isInterrupted()) {
             int read = reader.read(buffer);
             if (read > 0) {

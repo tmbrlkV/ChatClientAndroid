@@ -14,6 +14,8 @@ import com.chat_client.activity.ChatActivity;
 import com.chat_client.activity.MainActivity;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
+import com.chat_client.util.entity.JsonMessage;
+import com.chat_client.util.json.JsonObjectFactory;
 import com.chat_client.util.notification.NotificationUtils;
 
 import java.io.IOException;
@@ -85,20 +87,15 @@ public class ChatService extends Service {
     private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
             private OutputStream outputStream;
-            private StringBuffer messageAppender = new StringBuffer(0);
 
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
                 final Socket activeSocket = keeper.getActiveSocket();
-                messageAppender.append(login).append(" has joined");
-                writeTo(activeSocket);
-                messageAppender.setLength(0);
+                message = " has joined";
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
-                        messageAppender.append(login).append(": ").append(message);
                         writeTo(activeSocket);
-                        messageAppender.setLength(0);
                         message = null;
                     }
                 }
@@ -109,7 +106,9 @@ public class ChatService extends Service {
                     if (outputStream == null) {
                         outputStream = activeSocket.getOutputStream();
                     }
-                    outputStream.write(messageAppender.toString().getBytes());
+                    JsonMessage jsonMessage = new JsonMessage("message", login, message);
+                    String toSend = JsonObjectFactory.getJsonString(jsonMessage);
+                    outputStream.write(toSend.getBytes());
                     outputStream.flush();
                 } catch (IOException e) {
                     System.err.println(e.getMessage() + " sender thread");
@@ -144,6 +143,10 @@ public class ChatService extends Service {
                     int readBytes = inputStream.read(message);
                     if (readBytes > 0) {
                         String asStringMessage = new String(message);
+                        JsonMessage jsonMessage = JsonObjectFactory
+                                .getObjectFromJson(asStringMessage, JsonMessage.class);
+                        assert jsonMessage != null;
+                        asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
                         receiveMessageBuffer.append(asStringMessage);
                         Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
                         intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
