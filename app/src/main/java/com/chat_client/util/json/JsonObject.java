@@ -1,22 +1,24 @@
 package com.chat_client.util.json;
 
 
+import com.chat_client.util.entity.User;
+
 public class JsonObject {
     private String command;
-    private Object object;
+    private User user;
 
     public JsonObject() {}
 
-    JsonObject(String command, Object object) {
+    JsonObject(String command, User user) {
         this.command = command;
-        this.object = object;
+        this.user = user;
     }
 
     public String getCommand() {
         return command;
     }
 
-    public Object getObject() {
-        return object;
+    public Object getUser() {
+        return user;
     }
 }

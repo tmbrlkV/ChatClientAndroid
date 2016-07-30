@@ -1,4 +1,4 @@
-package com.chat_client.util.entity;
+package com.chat_client.util.json;
 
 public class JsonMessage {
     private String command;

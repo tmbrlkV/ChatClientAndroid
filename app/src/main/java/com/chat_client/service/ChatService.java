@@ -14,7 +14,7 @@ import com.chat_client.activity.ChatActivity;
 import com.chat_client.activity.MainActivity;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
-import com.chat_client.util.entity.JsonMessage;
+import com.chat_client.util.json.JsonMessage;
 import com.chat_client.util.json.JsonObjectFactory;
 import com.chat_client.util.notification.NotificationUtils;
 
