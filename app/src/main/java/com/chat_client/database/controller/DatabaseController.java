@@ -31,15 +31,15 @@ public class DatabaseController {
         InputStream reader = databaseRequester.getInputStream();
 
         byte[] buffer = new byte[1024];
-            boolean isValid = false;
+        boolean isValid = false;
         while (!Thread.currentThread().isInterrupted()) {
             int read = reader.read(buffer);
             if (read > 0) {
                 String databaseReply = new String(buffer).trim();
                 data.append(databaseReply);
-                user = JsonObjectFactory.getObjectFromJson(data.toString(), User.class);
-                if (user != null) {
-                    isValid = user.validation();
+                User newUser = JsonObjectFactory.getObjectFromJson(data.toString(), User.class);
+                if (newUser != null && newUser.equals(user)) {
+                    isValid = newUser.validation();
                     break;
                 }
                 data.setLength(0);
