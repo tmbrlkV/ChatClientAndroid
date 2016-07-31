@@ -10,6 +10,7 @@ import com.chat_client.util.json.JsonObjectFactory;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class DatabaseController {
     private Socket databaseRequester;
@@ -27,24 +28,20 @@ public class DatabaseController {
         outputStream.write(jsonString.getBytes());
         outputStream.flush();
 
-        StringBuilder data = new StringBuilder();
         InputStream reader = databaseRequester.getInputStream();
-
-        byte[] buffer = new byte[1024];
+        Scanner scanner = new Scanner(reader);
         boolean isValid = false;
-        while (!Thread.currentThread().isInterrupted()) {
-            int read = reader.read(buffer);
-            if (read > 0) {
-                String databaseReply = new String(buffer).trim();
-                data.append(databaseReply);
-                User newUser = JsonObjectFactory.getObjectFromJson(data.toString(), User.class);
-                if (newUser != null && newUser.equals(user)) {
-                    isValid = newUser.validation();
-                    break;
-                }
-                data.setLength(0);
+        int count = 0;
+        while (count++ < 5) {
+            String line = scanner.nextLine();
+            System.out.println(line);
+            User newUser = JsonObjectFactory.getObjectFromJson(line, User.class);
+            if (newUser != null && newUser.equals(user) && newUser.getId() != 0) {
+                isValid = newUser.validation();
+                break;
             }
         }
+        System.out.println(isValid);
         return isValid;
     }
 
