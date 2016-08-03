@@ -3,20 +3,24 @@ package com.chat_client.database.controller;
 import android.annotation.TargetApi;
 import android.os.Build;
 
+import com.chat_client.client.NioClient;
+import com.chat_client.database.util.SocketConnection;
 import com.chat_client.database.util.security.SecurityUtil;
 import com.chat_client.util.entity.User;
 import com.chat_client.util.json.JsonObjectFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class DatabaseController {
-    private Socket databaseRequester;
+    private SocketConnection keeper;
 
-    public DatabaseController(Socket databaseRequester) {
-        this.databaseRequester = databaseRequester;
+    public DatabaseController(SocketConnection keeper) {
+        this.keeper = keeper;
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -24,22 +28,14 @@ public class DatabaseController {
         String hashPassword = SecurityUtil.hash(user.getPassword());
         user.setPassword(hashPassword);
         String jsonString = JsonObjectFactory.getJsonString(command, user);
-        OutputStream outputStream = databaseRequester.getOutputStream();
-        outputStream.write(jsonString.getBytes());
-        outputStream.flush();
+        keeper.send(jsonString);
 
-        InputStream reader = databaseRequester.getInputStream();
-        Scanner scanner = new Scanner(reader);
+        String read = keeper.read();
+        System.out.println(read);
         boolean isValid = false;
-        int count = 0;
-        while (count++ < 5) {
-            String line = scanner.nextLine();
-            System.out.println(line);
-            User newUser = JsonObjectFactory.getObjectFromJson(line, User.class);
-            if (newUser != null && newUser.equals(user) && newUser.getId() != 0) {
-                isValid = newUser.validation();
-                break;
-            }
+        User newUser = JsonObjectFactory.getObjectFromJson(read, User.class);
+        if (newUser != null && newUser.equals(user) && newUser.getId() != 0) {
+            isValid = newUser.validation();
         }
         System.out.println(isValid);
         return isValid;

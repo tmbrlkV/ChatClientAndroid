@@ -19,9 +19,6 @@ import com.chat_client.util.json.JsonObjectFactory;
 import com.chat_client.util.notification.NotificationUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 
 public class ChatService extends Service {
     public static final String BROADCAST_ACTION = "com.chat_client.activity";
@@ -86,30 +83,23 @@ public class ChatService extends Service {
 
     private Thread startSenderThread(final String login) {
         Thread send = new Thread(new Runnable() {
-            private OutputStream outputStream;
-
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
-                final Socket activeSocket = keeper.getActiveSocket();
                 message = " has joined";
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
-                        writeTo(activeSocket);
+                        writeTo(keeper);
                         message = null;
                     }
                 }
             }
 
-            private void writeTo(Socket activeSocket) {
+            private void writeTo(SocketConnection keeper) {
                 try {
-                    if (outputStream == null) {
-                        outputStream = activeSocket.getOutputStream();
-                    }
                     JsonMessage jsonMessage = new JsonMessage("message", login, message);
                     String toSend = JsonObjectFactory.getJsonString(jsonMessage);
-                    outputStream.write(toSend.getBytes());
-                    outputStream.flush();
+                    keeper.send(toSend);
                 } catch (IOException e) {
                     System.err.println(e.getMessage() + " sender thread");
                     Thread.currentThread().interrupt();
@@ -122,42 +112,31 @@ public class ChatService extends Service {
 
     private Thread startReceiverThread() {
         Thread receiver = new Thread(new Runnable() {
-            private InputStream inputStream;
             private StringBuffer receiveMessageBuffer = new StringBuffer();
 
             @Override
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
-                Socket activeSocket = keeper.getActiveSocket();
                 while (!Thread.currentThread().isInterrupted()) {
-                    readFrom(activeSocket);
+                    readFrom(keeper);
                 }
             }
 
-            private void readFrom(Socket activeSocket) {
+            private void readFrom(SocketConnection keeper) {
                 try {
-                    if (inputStream == null) {
-                        inputStream = activeSocket.getInputStream();
-                    }
-                    byte[] message = new byte[300];
-                    int readBytes = inputStream.read(message);
-                    if (readBytes > 0) {
-                        String asStringMessage = new String(message);
-                        JsonMessage jsonMessage = JsonObjectFactory
-                                .getObjectFromJson(asStringMessage, JsonMessage.class);
-                        assert jsonMessage != null;
-                        asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
-                        receiveMessageBuffer.append(asStringMessage);
-                        Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
-                                receiveMessageBuffer.toString());
-                        sendBroadcast(intent);
-                        notify(asStringMessage);
-                        receiveMessageBuffer.setLength(0);
-                    } else if (readBytes == -1) {
-                        goBackToMainActivity();
-                        Thread.currentThread().interrupt();
-                    }
+                    String read = keeper.read();
+                    System.out.println(read + " KEK");
+                    JsonMessage jsonMessage = JsonObjectFactory
+                            .getObjectFromJson(read, JsonMessage.class);
+                    assert jsonMessage != null;
+                    String asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
+                    receiveMessageBuffer.append(asStringMessage);
+                    Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
+                    intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                            receiveMessageBuffer.toString());
+                    sendBroadcast(intent);
+                    notify(asStringMessage);
+                    receiveMessageBuffer.setLength(0);
                 } catch (IOException e) {
                     System.err.println(e.getMessage() + " receiver thread");
                     Thread.currentThread().interrupt();

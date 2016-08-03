@@ -1,9 +1,12 @@
 package com.chat_client.database.util.security;
 
+import android.support.annotation.NonNull;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class SecurityUtil {
+    @NonNull
     public static String hash(String string) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA");

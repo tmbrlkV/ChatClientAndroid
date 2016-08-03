@@ -5,14 +5,18 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Build;
 
+import com.chat_client.client.NioClient;
+import com.chat_client.client.ResponseHandler;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.InetAddress;
 import java.util.Properties;
 
 public class SocketConnection extends Application {
-    private Socket socket;
+    private Thread clientThread;
+    private NioClient client;
+    private ResponseHandler handler = new ResponseHandler();
 
     private static final class ConnectionProperties {
         private ConnectionProperties() {
@@ -37,7 +41,17 @@ public class SocketConnection extends Application {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                socket = socketInit();
+                try {
+                    Properties properties = ConnectionProperties.getProperties(getApplicationContext());
+                    String host = properties.getProperty("butler_service_address");
+                    int port = Integer.parseInt(properties.getProperty("butler_service_port"));
+                    client = new NioClient(InetAddress.getByName(host), port);
+                    clientThread = new Thread(client);
+                    clientThread.setDaemon(true);
+                    clientThread.start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         thread.start();
@@ -48,34 +62,21 @@ public class SocketConnection extends Application {
         }
     }
 
-    public Socket getActiveSocket() {
-        if (socket.isClosed()) {
-            socket = socketInit();
-        }
-        return socket;
-    }
-
-    private Socket socketInit() {
-        Socket socket = new Socket();
-        Properties properties = ConnectionProperties
-                .getProperties(SocketConnection.this);
-        String address = (String) properties.get("butler_service_address");
-        System.out.println(address + " KEK");
-        int port = Integer.parseInt((String) properties.get("butler_service_port"));
+    public void send(String message) {
         try {
-            socket.connect(new InetSocketAddress(address, port));
-            socket.setReuseAddress(true);
+            client.send(message.getBytes(), handler);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return socket;
+    }
+
+    public String read() {
+        String read = handler.waitForResponse().trim();
+        System.out.println(read);
+        return read;
     }
 
     public void close() {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        clientThread.interrupt();
     }
 }

@@ -33,8 +33,7 @@ public class DatabaseService extends Service {
             public void run() {
                 try {
                     SocketConnection keeper = (SocketConnection) getApplicationContext();
-                    Socket activeSocket = keeper.getActiveSocket();
-                    DatabaseController controller = new DatabaseController(activeSocket);
+                    DatabaseController controller = new DatabaseController(keeper);
                     pendingIntent = intent.getParcelableExtra(IntentExtraStrings.DATABASE_ACTION);
 
                     String command = intent.getStringExtra(IntentExtraStrings.DATABASE_COMMAND);
