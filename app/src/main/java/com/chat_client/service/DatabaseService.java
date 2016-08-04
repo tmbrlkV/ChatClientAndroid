@@ -41,7 +41,11 @@ public class DatabaseService extends Service {
                     String login = intent.getStringExtra(IntentExtraStrings.LOGIN);
                     String password = intent.getStringExtra(IntentExtraStrings.PASSWORD);
 
-                    boolean authorization = controller.execute(command, new User(login, password));
+                    boolean authorization = false;
+                    int count = 0;
+                    while (count++ < 5 && !authorization) {
+                        authorization = controller.execute(command, new User(login, password));
+                    }
                     intent.putExtra(IntentExtraStrings.VALID, authorization);
                     pendingIntent.send(DatabaseService.this, 0, intent);
                 } catch (Exception e) {

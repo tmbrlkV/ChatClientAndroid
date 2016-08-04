@@ -32,16 +32,13 @@ public class DatabaseController {
         Scanner scanner = new Scanner(reader);
         boolean isValid = false;
         int count = 0;
-        while (count++ < 5) {
+        while (count++ < 2 && !isValid) {
             String line = scanner.nextLine();
-            System.out.println(line);
             User newUser = JsonObjectFactory.getObjectFromJson(line, User.class);
             if (newUser != null && newUser.equals(user) && newUser.getId() != 0) {
                 isValid = newUser.validation();
-                break;
             }
         }
-        System.out.println(isValid);
         return isValid;
     }
 

@@ -142,18 +142,19 @@ public class ChatService extends Service {
                     byte[] message = new byte[300];
                     int readBytes = inputStream.read(message);
                     if (readBytes > 0) {
-                        String asStringMessage = new String(message);
+                        String asStringMessage = new String(message).trim();
                         JsonMessage jsonMessage = JsonObjectFactory
                                 .getObjectFromJson(asStringMessage, JsonMessage.class);
-                        assert jsonMessage != null;
-                        asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
-                        receiveMessageBuffer.append(asStringMessage);
-                        Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
-                        intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
-                                receiveMessageBuffer.toString());
-                        sendBroadcast(intent);
-                        notify(asStringMessage);
-                        receiveMessageBuffer.setLength(0);
+                        if (jsonMessage != null) {
+                            asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
+                            receiveMessageBuffer.append(asStringMessage);
+                            Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
+                            intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
+                                    receiveMessageBuffer.toString());
+                            sendBroadcast(intent);
+                            notify(asStringMessage);
+                            receiveMessageBuffer.setLength(0);
+                        }
                     } else if (readBytes == -1) {
                         goBackToMainActivity();
                         Thread.currentThread().interrupt();
