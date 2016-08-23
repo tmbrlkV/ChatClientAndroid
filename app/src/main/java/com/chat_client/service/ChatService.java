@@ -10,13 +10,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import com.chat.util.entity.Message;
+import com.chat.util.json.JsonObjectFactory;
+import com.chat.util.json.JsonProtocol;
 import com.chat_client.activity.ChatActivity;
 import com.chat_client.activity.MainActivity;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
-import com.chat_client.util.entity.Message;
-import com.chat_client.util.json.JsonObjectFactory;
-import com.chat_client.util.json.JsonProtocol;
 import com.chat_client.util.notification.NotificationUtils;
 
 import java.io.IOException;

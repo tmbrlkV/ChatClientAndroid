@@ -3,10 +3,10 @@ package com.chat_client.database.controller;
 import android.annotation.TargetApi;
 import android.os.Build;
 
+import com.chat.util.entity.User;
+import com.chat.util.json.JsonObjectFactory;
+import com.chat.util.json.JsonProtocol;
 import com.chat_client.database.util.security.SecurityUtil;
-import com.chat_client.util.entity.User;
-import com.chat_client.util.json.JsonObjectFactory;
-import com.chat_client.util.json.JsonProtocol;
 
 import java.io.InputStream;
 import java.io.OutputStream;
