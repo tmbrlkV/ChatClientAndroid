@@ -8,54 +8,52 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.chat_client.R;
-import com.chat_client.util.entity.ChatMessage;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
+public class ChatArrayAdapter extends ArrayAdapter<ChatLayoutMessage> {
     protected TextView chatText;
     protected TextView timeView;
-    private List<ChatMessage> chatMessageList = new ArrayList<>();
+    private List<ChatLayoutMessage> chatLayoutMessageList = new ArrayList<>();
 
     public ChatArrayAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
     }
 
     @Override
-    public void add(ChatMessage message) {
-        chatMessageList.add(message);
+    public void add(ChatLayoutMessage message) {
+        chatLayoutMessageList.add(message);
         super.add(message);
     }
 
     @Override
     public int getCount() {
-        return chatMessageList.size();
+        return chatLayoutMessageList.size();
     }
 
     @Override
-    public ChatMessage getItem(int index) {
-        return chatMessageList.get(index);
+    public ChatLayoutMessage getItem(int index) {
+        return chatLayoutMessageList.get(index);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ChatMessage chatMessage = getItem(position);
+        ChatLayoutMessage chatLayoutMessage = getItem(position);
         View row;
         LayoutInflater inflater = (LayoutInflater) this.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (chatMessage.getLayout()) {
+        if (chatLayoutMessage.getLayout()) {
             row = inflater.inflate(R.layout.right_message_layout, parent, false);
         } else {
             row = inflater.inflate(R.layout.left_message_layout, parent, false);
         }
         chatText = (TextView) row.findViewById(R.id.message_row);
-        chatText.setText(chatMessage.getMessage());
+        chatText.setText(chatLayoutMessage.getMessage());
 
         timeView = (TextView) row.findViewById(R.id.message_time);
-        timeView.setText(DateFormat.getTimeInstance().format(chatMessage.getTime()));
+        timeView.setText(DateFormat.getTimeInstance().format(chatLayoutMessage.getTime()));
 
         return row;
     }

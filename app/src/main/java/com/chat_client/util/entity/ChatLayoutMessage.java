@@ -2,12 +2,12 @@ package com.chat_client.util.entity;
 
 import java.util.Date;
 
-public class ChatMessage {
+public class ChatLayoutMessage {
     private String message;
     private boolean layout;
     private Date date;
 
-    public ChatMessage(String receivedMessage, String currentLogin) {
+    public ChatLayoutMessage(String receivedMessage, String currentLogin) {
         String senderLogin = receivedMessage.split(": ")[0];
         layout = senderLogin.equals(currentLogin);
         message = receivedMessage;

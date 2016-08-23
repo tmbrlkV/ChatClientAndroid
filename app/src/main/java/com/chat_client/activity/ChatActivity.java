@@ -21,7 +21,7 @@ import com.chat_client.util.message.StringCleaner;
 import com.chat_client.util.alert.AlertDialogUtils;
 import com.chat_client.util.alert.WifiAlertUtil;
 import com.chat_client.util.entity.ChatArrayAdapter;
-import com.chat_client.util.entity.ChatMessage;
+import com.chat_client.util.entity.ChatLayoutMessage;
 import com.chat_client.util.entity.IntentExtraStrings;
 import com.chat_client.util.notification.NotificationUtils;
 
@@ -73,7 +73,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String receive = intent.getStringExtra(IntentExtraStrings.RECEIVE_MESSAGE);
-                ChatMessage message = new ChatMessage(receive, currentLogin);
+                ChatLayoutMessage message = new ChatLayoutMessage(receive, currentLogin);
                 adapter.add(message);
             }
 

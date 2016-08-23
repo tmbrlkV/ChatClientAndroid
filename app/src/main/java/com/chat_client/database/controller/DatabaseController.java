@@ -6,6 +6,7 @@ import android.os.Build;
 import com.chat_client.database.util.security.SecurityUtil;
 import com.chat_client.util.entity.User;
 import com.chat_client.util.json.JsonObjectFactory;
+import com.chat_client.util.json.JsonProtocol;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,7 +24,7 @@ public class DatabaseController {
     public boolean execute(String command, User user) throws Exception {
         String hashPassword = SecurityUtil.hash(user.getPassword());
         user.setPassword(hashPassword);
-        String jsonString = JsonObjectFactory.getJsonString(command, user);
+        String jsonString = JsonObjectFactory.getJsonString(new JsonProtocol<>(command, user));
         OutputStream outputStream = databaseRequester.getOutputStream();
         outputStream.write(jsonString.getBytes());
         outputStream.flush();

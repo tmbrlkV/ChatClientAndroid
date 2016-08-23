@@ -14,8 +14,9 @@ import com.chat_client.activity.ChatActivity;
 import com.chat_client.activity.MainActivity;
 import com.chat_client.database.util.SocketConnection;
 import com.chat_client.util.entity.IntentExtraStrings;
-import com.chat_client.util.json.JsonMessage;
+import com.chat_client.util.entity.Message;
 import com.chat_client.util.json.JsonObjectFactory;
+import com.chat_client.util.json.JsonProtocol;
 import com.chat_client.util.notification.NotificationUtils;
 
 import java.io.IOException;
@@ -92,7 +93,7 @@ public class ChatService extends Service {
             public void run() {
                 SocketConnection keeper = (SocketConnection) getApplicationContext();
                 final Socket activeSocket = keeper.getActiveSocket();
-                message = " has joined";
+                message = "has joined";
                 while (!Thread.currentThread().isInterrupted()) {
                     if (message != null) {
                         writeTo(activeSocket);
@@ -106,7 +107,11 @@ public class ChatService extends Service {
                     if (outputStream == null) {
                         outputStream = activeSocket.getOutputStream();
                     }
-                    JsonMessage jsonMessage = new JsonMessage("message", login, message);
+
+                    JsonProtocol<Message<String>> jsonMessage =
+                            new JsonProtocol<>("message", new Message<>(login, message));
+                    jsonMessage.setFrom("login");
+                    jsonMessage.setTo("1");
                     String toSend = JsonObjectFactory.getJsonString(jsonMessage);
                     outputStream.write(toSend.getBytes());
                     outputStream.flush();
@@ -143,10 +148,12 @@ public class ChatService extends Service {
                     int readBytes = inputStream.read(message);
                     if (readBytes > 0) {
                         String asStringMessage = new String(message).trim();
-                        JsonMessage jsonMessage = JsonObjectFactory
-                                .getObjectFromJson(asStringMessage, JsonMessage.class);
+                        JsonProtocol<Message> jsonMessage = JsonObjectFactory
+                                .getObjectFromJson(asStringMessage, JsonProtocol.class);
                         if (jsonMessage != null) {
-                            asStringMessage = jsonMessage.getUsername() + ": " + jsonMessage.getContent();
+                            Message attachment = jsonMessage.getAttachment();
+                            asStringMessage = attachment.getLogin() + ": "
+                                    + attachment.getContent();
                             receiveMessageBuffer.append(asStringMessage);
                             Intent intent = new Intent(ChatActivity.BROADCAST_ACTION);
                             intent.putExtra(IntentExtraStrings.RECEIVE_MESSAGE,
