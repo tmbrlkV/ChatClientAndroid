@@ -110,8 +110,8 @@ public class ChatService extends Service {
 
                     JsonProtocol<Message<String>> jsonMessage =
                             new JsonProtocol<>("message", new Message<>(login, message));
-                    jsonMessage.setFrom("login");
-                    jsonMessage.setTo("1");
+                    jsonMessage.setFrom("15000");
+                    jsonMessage.setTo("to");
                     String toSend = JsonObjectFactory.getJsonString(jsonMessage);
                     outputStream.write(toSend.getBytes());
                     outputStream.flush();
