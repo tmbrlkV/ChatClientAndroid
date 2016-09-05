@@ -16,4 +16,6 @@
     <string name="wifi_dialog_no">No</string>
     <string name="clear_screen">Clear screen</string>
     <string name="menu">Menu</string>
+    <string name="enter">Enter</string>
+    <string name="create_room">Create room</string>
 </resources>

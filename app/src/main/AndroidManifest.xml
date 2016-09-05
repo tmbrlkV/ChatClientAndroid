@@ -50,6 +50,17 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activity.LobbyActivity"
+            android:alwaysRetainTaskState="true"
+            android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustNothing|stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.ALL_APPS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
